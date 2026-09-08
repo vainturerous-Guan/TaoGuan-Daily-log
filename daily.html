@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>生活日常记录 · 陶关每日记录</title>
+  <meta name="description" content="一日流水账、睡眠饮食、体重与每日小结。">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="site-nav">
+      <a class="site-name" href="index.html">陶关每日记录</a>
+      <button class="nav-toggle" aria-label="展开导航" aria-expanded="false">☰</button>
+      <ul class="nav-links">
+        <li><a href="daily.html" aria-current="page">生活日常记录</a></li>
+        <li><a href="parenting.html">陶关亲子手记</a></li>
+        <li><a href="knowledge.html">知识点积累</a></li>
+        <li><a href="reading.html">读书笔记</a></li>
+        <li><a href="stocks.html">股票监控与分析</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <h1 class="page-title">生活日常记录</h1>
+
+    <section class="card form-card" aria-labelledby="form-title">
+      <h2 id="form-title" class="card-title">今日记录</h2>
+      <form id="daily-form" novalidate>
+        <div class="form-row">
+          <div class="form-field">
+            <label for="record-date">日期</label>
+            <input type="date" id="record-date" required>
+            <span class="weekday" id="weekday-display"></span>
+          </div>
+          <div class="form-field">
+            <label for="weight">体重（kg，选填）</label>
+            <input type="number" id="weight" step="0.1" min="0" max="500" placeholder="如 65.5">
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="daily-log">一日流水账</label>
+          <textarea id="daily-log" rows="3" placeholder="今天都做了什么，按时间顺序记下来～"></textarea>
+        </div>
+
+        <fieldset class="form-field">
+          <legend>生活习惯</legend>
+          <label for="sleep">睡眠</label>
+          <input type="text" id="sleep" placeholder="如：昨晚 2:30 睡，今早 7 点醒来">
+          <label for="diet">饮食 · 含糖饮料 / 零食</label>
+          <input type="text" id="diet" placeholder="如：下午喝了一杯奶茶">
+        </fieldset>
+
+        <div class="form-field">
+          <label for="work">个人工作完成情况</label>
+          <textarea id="work" rows="3" placeholder="今天的工作完成情况"></textarea>
+        </div>
+
+        <div class="form-field">
+          <label for="life-parenting">生活&amp;育儿完成情况</label>
+          <textarea id="life-parenting" rows="3" placeholder="生活琐事与陪娃情况"></textarea>
+        </div>
+
+        <div class="form-field">
+          <label for="reflections">记录或感悟</label>
+          <textarea id="reflections" rows="3" placeholder="今天的所想所感"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" id="submit-btn">保存记录</button>
+          <button type="button" class="btn btn-ghost" id="cancel-edit-btn" hidden>取消编辑</button>
+        </div>
+      </form>
+    </section>
+
+    <section aria-labelledby="history-title">
+      <h2 id="history-title" class="card-title history-title">历史记录</h2>
+      <div id="record-list" class="record-list">
+        <p class="empty-hint" id="empty-hint" hidden>还没有记录，从今天的开始吧～</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>© <span class="current-year">2026</span> 陶关每日记录 · 用心记录每一天</p>
+  </footer>
+
+  <script src="js/config.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/daily.js"></script>
+</body>
+</html>
