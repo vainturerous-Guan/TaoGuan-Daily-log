@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>生活日常记录 · 陶关每日记录</title>
-  <meta name="description" content="一日流水账、睡眠饮食、体重与每日小结。">
+  <meta name="description" content="今日一句话总结、睡眠饮食、体重与每日记录。">
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -29,45 +29,75 @@
     <section class="card form-card" aria-labelledby="form-title">
       <h2 id="form-title" class="card-title">今日记录</h2>
       <form id="daily-form" novalidate>
-        <div class="form-row">
-          <div class="form-field">
+        <div class="form-row date-row">
+          <div class="form-field date-field">
             <label for="record-date">日期</label>
             <input type="date" id="record-date" required>
             <span class="weekday" id="weekday-display"></span>
           </div>
-          <div class="form-field">
-            <label for="weight">体重（kg，选填）</label>
-            <input type="number" id="weight" step="0.1" min="0" max="500" placeholder="如 65.5">
+          <div class="form-field summary-field">
+            <label for="summary">今日一句话总结</label>
+            <input type="text" id="summary" placeholder="用一句话总结今天" maxlength="100">
           </div>
         </div>
 
-        <div class="form-field">
-          <label for="daily-log">一日流水账</label>
-          <textarea id="daily-log" rows="3" placeholder="今天都做了什么，按时间顺序记下来～"></textarea>
-        </div>
-
-        <fieldset class="form-field">
-          <legend>生活习惯</legend>
-          <label for="sleep">睡眠</label>
-          <input type="text" id="sleep" placeholder="如：昨晚 2:30 睡，今早 7 点醒来">
-          <label for="diet">饮食 · 含糖饮料 / 零食</label>
-          <input type="text" id="diet" placeholder="如：下午喝了一杯奶茶">
+        <fieldset class="form-field health-group">
+          <legend>健康</legend>
+          <div class="health-grid">
+            <div class="sub-group">
+              <div class="sub-head">睡眠</div>
+              <label for="bed-time">昨日入睡时间</label>
+              <input type="text" id="bed-time" placeholder="如 23:30">
+              <label for="wake-time">今早起床时间</label>
+              <input type="text" id="wake-time" placeholder="如 7:00">
+            </div>
+            <div class="sub-group">
+              <div class="sub-head">
+                体重
+                <span class="unit-toggle" role="group" aria-label="体重单位">
+                  <button type="button" data-unit="jin" class="active">斤</button><button type="button" data-unit="kg">公斤</button>
+                </span>
+              </div>
+              <label for="weight-night">睡前体重</label>
+              <div class="input-with-unit">
+                <input type="number" id="weight-night" step="0.1" min="0" placeholder="未填">
+                <span class="unit-label">斤</span>
+              </div>
+              <label for="weight-morning">早起体重</label>
+              <div class="input-with-unit">
+                <input type="number" id="weight-morning" step="0.1" min="0" placeholder="未填">
+                <span class="unit-label">斤</span>
+              </div>
+            </div>
+            <div class="sub-group">
+              <div class="sub-head">饮食</div>
+              <label for="diet-snacks">零食·饮料</label>
+              <textarea id="diet-snacks" rows="2" placeholder="如：下午一杯奶茶"></textarea>
+              <label for="diet-meals">正餐</label>
+              <textarea id="diet-meals" rows="2" placeholder="如：早餐包子豆浆，午餐食堂"></textarea>
+            </div>
+          </div>
         </fieldset>
+
+        <div class="form-field">
+          <label for="today-record">今日记录（流水账/感悟）</label>
+          <textarea id="today-record" rows="4" placeholder="今天都做了什么、有什么感悟，都写在这里～"></textarea>
+        </div>
 
         <div class="form-field">
           <label for="work">个人工作完成情况</label>
           <textarea id="work" rows="3" placeholder="今天的工作完成情况"></textarea>
         </div>
 
-        <div class="form-field">
-          <label for="life-parenting">生活&amp;育儿完成情况</label>
-          <textarea id="life-parenting" rows="3" placeholder="生活琐事与陪娃情况"></textarea>
-        </div>
-
-        <div class="form-field">
-          <label for="reflections">记录或感悟</label>
-          <textarea id="reflections" rows="3" placeholder="今天的所想所感"></textarea>
-        </div>
+        <fieldset class="form-field parenting-group">
+          <legend>生活和育儿</legend>
+          <label for="parenting-life">生活&amp;育儿完成情况</label>
+          <textarea id="parenting-life" rows="3" placeholder="生活琐事与陪娃情况"></textarea>
+          <label for="parenting-mindful">育儿正念</label>
+          <textarea id="parenting-mindful" rows="2" placeholder="今天育儿中做得好的、值得保持的地方"></textarea>
+          <label for="parenting-reflection">育儿反思及提升点</label>
+          <textarea id="parenting-reflection" rows="2" placeholder="可以做得更好的地方"></textarea>
+        </fieldset>
 
         <div class="form-actions">
           <button type="submit" class="btn btn-primary" id="submit-btn">保存记录</button>
