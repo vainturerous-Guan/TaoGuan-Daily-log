@@ -32,6 +32,29 @@
 
 退化为 `localStorage`（key：`taoguan_daily_records`），页顶部显示黄色提示条「当前为本地模式，数据只保存在此浏览器」。
 
+### 记录数据结构
+
+`data/daily-records.json` / `localStorage` 中为一个 JSON 数组，每条：
+
+```json
+{
+  "id": "...",
+  "date": "YYYY-MM-DD",
+  "summary": "今日一句话总结",
+  "sleep": { "bedTime": "昨日入睡时间", "wakeTime": "今早起床时间" },
+  "weight": { "night": 55.5, "morning": 55.0 },
+  "diet": { "snacks": "零食饮料", "meals": "正餐" },
+  "todayRecord": "今日记录（流水账/感悟）",
+  "work": "个人工作完成情况",
+  "parenting": { "life": "生活&育儿完成情况", "mindful": "育儿正念", "reflection": "育儿反思及提升点" },
+  "createdAt": "...", "updatedAt": "..."
+}
+```
+
+- 体重一律以公斤（kg）存储；页面上可在「斤 / 公斤」间切换显示（默认斤），单位选择持久化在 `localStorage`（key：`taoguan_weight_unit`），切换时表单已填数字自动换算（斤 ÷ 2 = kg）。
+- 历史记录以表格展示（日期/睡眠/体重/饮食/今日记录/工作/生活和育儿/操作），点「编辑」在模态框中修改。
+- 旧结构记录（`dailyLog`/`sleep` 字符串、`weight` 数字等）读取时自动一次性归一化为新结构，编辑保存后落盘为新格式。
+
 > 安全说明：令牌只存在你自己浏览器的 localStorage 里，不会进入仓库代码。请勿在公共电脑上保存令牌；若怀疑令牌泄漏，立即在 GitHub 上吊销并重新生成。
 
 ## 本地预览
