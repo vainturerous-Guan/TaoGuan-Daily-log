@@ -64,6 +64,8 @@
   // GitHub：GET（raw）→ JSON 数组；404 视为空数组
   async function githubLoad() {
     const res = await fetch(apiUrl(), {
+      // no-store：避免浏览器缓存把 raw 响应当成 json 元数据（会导致 sha 丢失、写入 422）
+      cache: "no-store",
       headers: authHeaders({ Accept: "application/vnd.github.raw+json" }),
     });
     if (res.status === 404) return [];
@@ -75,7 +77,7 @@
 
   // GitHub：先 GET 拿 sha，再 PUT base64 内容；409 冲突时重新 GET 再试一次
   async function githubPut(records, retried) {
-    const getRes = await fetch(apiUrl(), { headers: authHeaders() });
+    const getRes = await fetch(apiUrl(), { cache: "no-store", headers: authHeaders() });
     let sha;
     if (getRes.status === 404) {
       sha = undefined; // 文件尚不存在，直接创建
