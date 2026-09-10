@@ -1,1 +1,28 @@
-[]
+[
+  {
+    "id": "mtv9gh6e2g9htk",
+    "createdAt": 1789028634614,
+    "updatedAt": 1789028634614,
+    "date": "2026-09-10",
+    "summary": "修复验证测试",
+    "sleep": {
+      "bedTime": "",
+      "wakeTime": ""
+    },
+    "weight": {
+      "night": null,
+      "morning": null
+    },
+    "diet": {
+      "snacks": "",
+      "meals": ""
+    },
+    "todayRecord": "",
+    "work": "工作测试",
+    "parenting": {
+      "life": "育儿测试",
+      "mindful": "",
+      "reflection": ""
+    }
+  }
+]
