@@ -1,1 +1,28 @@
-[]
+[
+  {
+    "id": "mtwrhq0vl00uda",
+    "createdAt": 1789119391999,
+    "updatedAt": 1789119391999,
+    "date": "2026-09-11",
+    "summary": "回归测试",
+    "sleep": {
+      "bedTime": "",
+      "wakeTime": ""
+    },
+    "weight": {
+      "night": null,
+      "morning": null
+    },
+    "diet": {
+      "snacks": "",
+      "meals": ""
+    },
+    "todayRecord": "",
+    "work": "",
+    "parenting": {
+      "life": "",
+      "mindful": "",
+      "reflection": ""
+    }
+  }
+]
