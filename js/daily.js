@@ -289,6 +289,16 @@
     await Storage.save(records);
   }
 
+  // 把底层错误翻译成用户能看懂、且带排查线索的提示
+  function friendlyError(err, action) {
+    const status = err && err.status;
+    if (status === 401) return action + "失败（401）：浏览器里保存的令牌无效，请点页脚「清除令牌」，然后重新粘贴输入";
+    if (status === 403) return action + "失败（403）：令牌权限不足，请重新创建只含本仓库 Contents 读写权限的令牌";
+    if (status === 409 || status === 422) return action + "失败（" + status + "）：数据被其他页面更新过，请刷新后重试";
+    if (status) return action + "失败（" + status + "），请刷新重试或联系维护者";
+    return action + "失败：网络连不上 GitHub，请检查网络后重试";
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     if (saving) return;
@@ -321,7 +331,7 @@
       renderList();
     } catch (err) {
       console.error("保存失败", err);
-      Common.toast("保存失败，请检查网络后重试", "error");
+      Common.toast(friendlyError(err, "保存"), "error");
       // 回滚内存改动，保留用户已填写内容
       try {
         records = (await Storage.load()).map(normalizeRecord).filter(Boolean);
@@ -598,7 +608,7 @@
       renderList();
     } catch (err) {
       console.error("保存失败", err);
-      Common.toast("保存失败，请检查网络后重试", "error");
+      Common.toast(friendlyError(err, "保存"), "error");
       try {
         records = (await Storage.load()).map(normalizeRecord).filter(Boolean);
       } catch (_) {
@@ -658,7 +668,7 @@
     } catch (err) {
       console.error("读取记录失败", err);
       records = [];
-      Common.toast("读取记录失败，请刷新重试", "error");
+      Common.toast(friendlyError(err, "读取"), "error");
     }
     renderList();
   }
