@@ -61,6 +61,22 @@
     return [];
   }
 
+  // 读取 GitHub 错误响应里的 message 字段（排查 401/403 等必备）
+  async function readErrDetail(res) {
+    try {
+      const j = await res.json();
+      return (j.message || "").slice(0, 120);
+    } catch (e) {
+      return "";
+    }
+  }
+
+  function apiError(prefix, status, detail) {
+    const err = new Error(prefix + "：" + status + (detail ? "｜" + detail : ""));
+    err.status = status;
+    return err;
+  }
+
   // GitHub：GET（raw）→ JSON 数组；404 视为空数组
   async function githubLoad() {
     const res = await fetch(apiUrl(), {
@@ -69,16 +85,10 @@
       headers: authHeaders({ Accept: "application/vnd.github.raw+json" }),
     });
     if (res.status === 404) return [];
-    if (!res.ok) throw apiError("GitHub 读取失败", res.status);
+    if (!res.ok) throw apiError("GitHub 读取失败", res.status, await readErrDetail(res));
     const text = await res.text();
     if (!text.trim()) return [];
     return normalizeArray(JSON.parse(text));
-  }
-
-  function apiError(prefix, status) {
-    const err = new Error(prefix + "：" + status);
-    err.status = status;
-    return err;
   }
 
   // GitHub：先 GET 拿 sha，再 PUT base64 内容；409 冲突时重新 GET 再试一次
@@ -90,7 +100,7 @@
     } else if (getRes.ok) {
       sha = (await getRes.json()).sha;
     } else {
-      throw apiError("GitHub 获取文件信息失败", getRes.status);
+      throw apiError("GitHub 获取文件信息失败", getRes.status, await readErrDetail(getRes));
     }
 
     const body = {
@@ -108,7 +118,7 @@
     if (putRes.status === 409 && !retried) {
       return githubPut(records, true);
     }
-    throw apiError("GitHub 写入失败", putRes.status);
+    throw apiError("GitHub 写入失败", putRes.status, await readErrDetail(putRes));
   }
 
   async function githubSave(records) {
