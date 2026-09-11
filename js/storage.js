@@ -69,10 +69,16 @@
       headers: authHeaders({ Accept: "application/vnd.github.raw+json" }),
     });
     if (res.status === 404) return [];
-    if (!res.ok) throw new Error("GitHub 读取失败：" + res.status);
+    if (!res.ok) throw apiError("GitHub 读取失败", res.status);
     const text = await res.text();
     if (!text.trim()) return [];
     return normalizeArray(JSON.parse(text));
+  }
+
+  function apiError(prefix, status) {
+    const err = new Error(prefix + "：" + status);
+    err.status = status;
+    return err;
   }
 
   // GitHub：先 GET 拿 sha，再 PUT base64 内容；409 冲突时重新 GET 再试一次
@@ -84,7 +90,7 @@
     } else if (getRes.ok) {
       sha = (await getRes.json()).sha;
     } else {
-      throw new Error("GitHub 获取 sha 失败：" + getRes.status);
+      throw apiError("GitHub 获取文件信息失败", getRes.status);
     }
 
     const body = {
@@ -102,7 +108,7 @@
     if (putRes.status === 409 && !retried) {
       return githubPut(records, true);
     }
-    throw new Error("GitHub 写入失败：" + putRes.status);
+    throw apiError("GitHub 写入失败", putRes.status);
   }
 
   async function githubSave(records) {
