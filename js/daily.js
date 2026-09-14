@@ -1,7 +1,7 @@
 // 生活日常记录频道逻辑
 // 数据结构：{ id, date, summary, sleep:{bedTime,wakeTime}, weight:{night,morning}(kg),
-//            diet:{snacks,meals}, todayRecord, work, parenting:{life,mindful,reflection},
-//            createdAt, updatedAt }
+//            diet:{snacks,meals}, journal:[{id,createdAt,text}], work,
+//            parenting:{life,mindful,reflection}, createdAt, updatedAt }
 (function () {
   "use strict";
 
@@ -81,13 +81,26 @@
     return typeof v === "string" ? v : v == null ? "" : String(v);
   }
 
-  // 旧结构（dailyLog/sleep 字符串、weight 数字、diet 字符串、lifeParenting/reflections）→ 新结构
+  // 旧结构（todayRecord/dailyLog/reflections 字符串、sleep 字符串、weight 数字、diet 字符串、lifeParenting）→ 新结构
   // 幂等：新结构记录原样通过
   function normalizeRecord(rec) {
     if (!rec || typeof rec !== "object") return null;
     const oldParts = [];
+    if (strOrEmpty(rec.todayRecord).trim()) oldParts.push(strOrEmpty(rec.todayRecord));
     if (strOrEmpty(rec.dailyLog).trim()) oldParts.push(strOrEmpty(rec.dailyLog));
     if (strOrEmpty(rec.reflections).trim()) oldParts.push(strOrEmpty(rec.reflections));
+
+    // journal：新结构数组沿用；旧字符串字段合并为单元素数组
+    let journal;
+    if (Array.isArray(rec.journal)) {
+      journal = rec.journal
+        .filter((j) => j && typeof j.text === "string" && j.text.trim())
+        .map((j) => ({ id: j.id || newId(), createdAt: j.createdAt || Date.now(), text: j.text }));
+    } else {
+      journal = oldParts.length
+        ? [{ id: newId(), createdAt: rec.updatedAt || Date.now(), text: oldParts.join("\n\n") }]
+        : [];
+    }
 
     const sleep =
       rec.sleep && typeof rec.sleep === "object"
@@ -120,8 +133,7 @@
       sleep: sleep,
       weight: weight,
       diet: diet,
-      todayRecord:
-        strOrEmpty(rec.todayRecord).trim() || oldParts.join("\n\n"),
+      journal: journal,
       work: strOrEmpty(rec.work),
       parenting: parenting,
       createdAt: rec.createdAt || Date.now(),
@@ -144,7 +156,6 @@
       weightMorning: q("weight-morning"),
       dietSnacks: q("diet-snacks"),
       dietMeals: q("diet-meals"),
-      todayRecord: q("today-record"),
       work: q("work"),
       pLife: q("parenting-life"),
       pMindful: q("parenting-mindful"),
@@ -152,14 +163,15 @@
     };
   }
 
-  function readForm(f) {
+  function readForm(f, form) {
+    syncJournalFromDom(form);
     return {
       date: f.date.value,
       summary: f.summary.value.trim(),
       sleep: { bedTime: f.bedTime.value.trim(), wakeTime: f.wakeTime.value.trim() },
       weight: { night: displayToKg(f.weightNight.value), morning: displayToKg(f.weightMorning.value) },
       diet: { snacks: f.dietSnacks.value.trim(), meals: f.dietMeals.value.trim() },
-      todayRecord: f.todayRecord.value.trim(),
+      journal: (form.__journal || []).map((j) => ({ id: j.id, createdAt: j.createdAt, text: j.text })),
       work: f.work.value.trim(),
       parenting: {
         life: f.pLife.value.trim(),
@@ -169,7 +181,7 @@
     };
   }
 
-  function fillForm(f, rec) {
+  function fillForm(f, rec, form) {
     f.date.value = rec.date;
     f.summary.value = rec.summary || "";
     f.bedTime.value = rec.sleep.bedTime || "";
@@ -178,7 +190,6 @@
     f.weightMorning.value = kgToDisplay(rec.weight.morning);
     f.dietSnacks.value = rec.diet.snacks || "";
     f.dietMeals.value = rec.diet.meals || "";
-    f.todayRecord.value = rec.todayRecord || "";
     f.work.value = rec.work || "";
     f.pLife.value = rec.parenting.life || "";
     f.pMindful.value = rec.parenting.mindful || "";
@@ -186,9 +197,15 @@
     if (f.weekday) {
       f.weekday.textContent = rec.date ? Common.weekdayOf(rec.date) : "";
     }
+    form.__journal = (rec.journal || []).map((j) => ({
+      id: j.id || newId(),
+      createdAt: j.createdAt || Date.now(),
+      text: j.text,
+    }));
+    renderJournal(form);
   }
 
-  function clearForm(f) {
+  function clearForm(f, form) {
     f.summary.value = "";
     f.bedTime.value = "";
     f.wakeTime.value = "";
@@ -196,11 +213,104 @@
     f.weightMorning.value = "";
     f.dietSnacks.value = "";
     f.dietMeals.value = "";
-    f.todayRecord.value = "";
     f.work.value = "";
     f.pLife.value = "";
     f.pMindful.value = "";
     f.pReflection.value = "";
+    form.__journal = [];
+    renderJournal(form);
+  }
+
+  /* ---------- 当日流水账条目（顶部表单与模态框表单通用） ---------- */
+
+  function journalListEl(form) {
+    return form.querySelector("#journal-list") || form.querySelector("#journal-list-m");
+  }
+
+  function journalPasteEl(form) {
+    return form.querySelector("#journal-paste") || form.querySelector("#journal-paste-m");
+  }
+
+  // 把条目卡片 textarea 里的当前编辑内容同步回 form.__journal
+  function syncJournalFromDom(form) {
+    const list = journalListEl(form);
+    if (!list || !form.__journal) return;
+    list.querySelectorAll(".journal-entry").forEach((card) => {
+      const j = form.__journal.find((x) => x.id === card.dataset.jid);
+      const ta = card.querySelector("textarea");
+      if (j && ta) j.text = ta.value;
+    });
+  }
+
+  function renderJournal(form) {
+    const list = journalListEl(form);
+    if (!list) return;
+    const items = form.__journal || [];
+    list.innerHTML = items
+      .map(
+        (j, i) =>
+          '<div class="journal-entry" data-jid="' + Common.escapeHtml(j.id) + '">' +
+          '<div class="journal-entry-head">' +
+          '<span class="journal-entry-title">流水账 ' + (i + 1) + "</span>" +
+          '<button type="button" class="journal-entry-del">删除</button>' +
+          "</div>" +
+          '<textarea rows="3" placeholder="整理结果可继续修改">' +
+          Common.escapeHtml(j.text) +
+          "</textarea>" +
+          "</div>"
+      )
+      .join("");
+  }
+
+  // 由表单当前值构造提取草稿（体重转 kg，追加式字段带上已有内容以便去重）
+  function draftFromFields(f) {
+    return {
+      sleep: { bedTime: f.bedTime.value.trim(), wakeTime: f.wakeTime.value.trim() },
+      weight: { night: displayToKg(f.weightNight.value), morning: displayToKg(f.weightMorning.value) },
+      diet: { snacks: f.dietSnacks.value.trim(), meals: f.dietMeals.value.trim() },
+      work: f.work.value.trim(),
+      parenting: { life: f.pLife.value.trim() },
+    };
+  }
+
+  // 把提取结果写回表单（睡眠/体重仅在有提取值时覆盖；饮食/工作/育儿为追加后的完整内容）
+  function applyDraftToFields(f, d) {
+    if (d.sleep.bedTime) f.bedTime.value = d.sleep.bedTime;
+    if (d.sleep.wakeTime) f.wakeTime.value = d.sleep.wakeTime;
+    if (d.weight.night != null) f.weightNight.value = kgToDisplay(d.weight.night);
+    if (d.weight.morning != null) f.weightMorning.value = kgToDisplay(d.weight.morning);
+    f.dietSnacks.value = d.diet.snacks;
+    f.dietMeals.value = d.diet.meals;
+    f.work.value = d.work;
+    f.pLife.value = d.parenting.life;
+  }
+
+  // 智能整理：清洗+分段 → 追加流水账条目 → 全量提取填充栏目（只改表单状态，不落盘）
+  function handleOrganize(form) {
+    if (!window.Smart) {
+      Common.toast("整理组件未加载，请刷新页面", "error");
+      return;
+    }
+    const paste = journalPasteEl(form);
+    const raw = (paste.value || "").trim();
+    if (!raw) {
+      Common.toast("请先粘贴语音转文字的内容", "error");
+      return;
+    }
+    const text = Smart.organize(raw);
+    syncJournalFromDom(form);
+    form.__journal = form.__journal || [];
+    form.__journal.push({ id: newId(), createdAt: Date.now(), text: text });
+    paste.value = "";
+    renderJournal(form);
+
+    const f = getFields(form);
+    const draft = draftFromFields(f);
+    const allText = form.__journal.map((j) => j.text).join("\n");
+    Smart.extract(draft, allText);
+    applyDraftToFields(f, draft);
+
+    Common.toast("已整理：流水账" + form.__journal.length + " 已生成，相关栏目已填充，请检查后保存");
   }
 
   function updateUnitLabels() {
@@ -260,10 +370,10 @@
     editingId = null;
     els.form.reset();
     els.fields.date.value = Common.todayStr();
-    clearForm(els.fields);
+    clearForm(els.fields, els.form);
     // 今天已有记录时预填，避免空表单覆盖已有数据
     const todayRec = latestRecordOfDate(els.fields.date.value);
-    if (todayRec) fillForm(els.fields, todayRec);
+    if (todayRec) fillForm(els.fields, todayRec, els.form);
     editingId = todayRec ? todayRec.id : null;
     updateWeekday();
     updateFormMode();
@@ -302,7 +412,7 @@
   async function handleSubmit(e) {
     e.preventDefault();
     if (saving) return;
-    const data = readForm(els.fields);
+    const data = readForm(els.fields, els.form);
     if (!data.date) {
       Common.toast("请先选择日期", "error");
       return;
@@ -349,7 +459,7 @@
     // 所选日期已有记录时预填并进入更新模式；无记录则退出编辑模式
     const existing = latestRecordOfDate(els.fields.date.value);
     if (existing) {
-      fillForm(els.fields, existing);
+      fillForm(els.fields, existing, els.form);
       editingId = existing.id;
     } else {
       editingId = null;
@@ -438,6 +548,25 @@
     );
   }
 
+  // 「今日记录」列：多条显示「流水账×N」+ 第一条前约 40 字；单条直接显示前约 40 字
+  function cellJournalHtml(rec) {
+    const items = rec.journal || [];
+    if (!items.length) return '<span class="cell-empty">—</span>';
+    const first = items[0].text || "";
+    const preview = first.length > 40 ? first.slice(0, 40) + "…" : first;
+    const countLabel =
+      items.length > 1
+        ? '<div class="cell-label journal-count">流水账×' + items.length + "</div>"
+        : "";
+    const full = items.map((j, i) => "流水账" + (i + 1) + "：" + j.text).join("\n\n");
+    return (
+      '<div class="clamp3" title="' + escapeAttr(full) + '">' +
+      countLabel +
+      Common.escapeHtml(preview) +
+      "</div>"
+    );
+  }
+
   function rowHtml(rec, isToday) {
     const dateHtml =
       '<div class="cell-date">' +
@@ -450,10 +579,7 @@
           Common.escapeHtml(rec.summary) + "</div>"
         : "");
 
-    const todayHtml = rec.todayRecord
-      ? '<div class="clamp3" title="' + escapeAttr(rec.todayRecord) + '">' +
-        Common.escapeHtml(rec.todayRecord) + "</div>"
-      : '<span class="cell-empty">—</span>';
+    const todayHtml = cellJournalHtml(rec);
     const workHtml = rec.work
       ? '<div class="clamp3" title="' + escapeAttr(rec.work) + '">' +
         Common.escapeHtml(rec.work) + "</div>"
@@ -573,7 +699,9 @@
   function openEditModal(rec) {
     if (!modal) buildModal();
     modal.recordId = rec.id;
-    fillForm(modal.fields, rec);
+    fillForm(modal.fields, rec, modal.form);
+    const paste = journalPasteEl(modal.form);
+    if (paste) paste.value = "";
     modal.overlay.hidden = false;
     document.body.classList.add("modal-open");
   }
@@ -592,7 +720,7 @@
       closeModal();
       return;
     }
-    const data = readForm(modal.fields);
+    const data = readForm(modal.fields, modal.form);
     if (!data.date) {
       Common.toast("请先选择日期", "error");
       return;
@@ -645,6 +773,8 @@
 
   async function init() {
     cacheEls();
+    els.form.__journal = [];
+    renderJournal(els.form);
     els.fields.date.value = Common.todayStr();
     updateUnitLabels();
     updateWeekday();
@@ -657,9 +787,36 @@
       resetForm();
       renderList();
     });
+    // 全站委托：单位切换、智能整理、流水账条目删除、条目文本编辑
     document.addEventListener("click", (e) => {
-      const btn = e.target.closest(".unit-toggle button[data-unit]");
-      if (btn) setUnit(btn.dataset.unit);
+      const unitBtn = e.target.closest(".unit-toggle button[data-unit]");
+      if (unitBtn) {
+        setUnit(unitBtn.dataset.unit);
+        return;
+      }
+      const orgBtn = e.target.closest(".smart-organize-btn");
+      if (orgBtn) {
+        const form = orgBtn.closest("form");
+        if (form) handleOrganize(form);
+        return;
+      }
+      const delBtn = e.target.closest(".journal-entry-del");
+      if (delBtn) {
+        const card = delBtn.closest(".journal-entry");
+        const form = delBtn.closest("form");
+        if (!card || !form) return;
+        syncJournalFromDom(form);
+        form.__journal = (form.__journal || []).filter((j) => j.id !== card.dataset.jid);
+        renderJournal(form);
+      }
+    });
+    document.addEventListener("input", (e) => {
+      if (!e.target.matches || !e.target.matches(".journal-entry textarea")) return;
+      const card = e.target.closest(".journal-entry");
+      const form = e.target.closest("form");
+      if (!card || !form || !form.__journal) return;
+      const j = form.__journal.find((x) => x.id === card.dataset.jid);
+      if (j) j.text = e.target.value;
     });
 
     try {
