@@ -8,7 +8,8 @@
 | --- | --- |
 | `index.html` | 首页，五个频道入口 |
 | `daily.html` | 生活日常记录（已完整实现） |
-| `parenting.html` / `knowledge.html` / `reading.html` / `stocks.html` | 占位页，内容建设中 |
+| `knowledge.html` | 知识点积累（已可用） |
+| `parenting.html` / `reading.html` / `stocks.html` | 占位页，内容建设中 |
 
 ## 数据存储（双模式）
 
@@ -16,7 +17,7 @@
 
 ### GitHub 模式（有令牌时）
 
-数据存为仓库根下 `data/daily-records.json`（JSON 数组）。读取用 `GET .../contents/data/daily-records.json`（`Accept: application/vnd.github.raw+json`，404 视为空数组）；写入先 GET 拿 `sha` 再 PUT（base64，message 为「更新每日记录」），409 冲突自动重试一次。
+数据存为仓库根下 `data/daily-records.json`（JSON 数组；知识点积累频道则存 `data/knowledge.json`，两者共用同一套读写逻辑，按文件路径区分）。读取用 `GET .../contents/<文件路径>`（`Accept: application/vnd.github.raw+json`，404 视为空数组）；写入先 GET 拿 `sha` 再 PUT（base64，message 为「更新记录数据」），409 冲突自动重试一次。所有 API 请求带 `cache: "no-store"`，避免浏览器缓存串包导致 sha 丢失。
 
 ### 如何填写 / 清除令牌
 
@@ -44,28 +45,26 @@
   "sleep": { "bedTime": "昨日入睡时间", "wakeTime": "今早起床时间" },
   "weight": { "night": 55.5, "morning": 55.0 },
   "diet": { "snacks": "零食饮料", "meals": "正餐" },
-  "journal": [ { "id": "...", "createdAt": 1726200000000, "text": "整理后的流水账文本" } ],
+  "todayRecord": "今日记录（流水账/感悟）",
   "work": "个人工作完成情况",
   "parenting": { "life": "生活&育儿完成情况", "mindful": "育儿正念", "reflection": "育儿反思及提升点" },
   "createdAt": "...", "updatedAt": "..."
 }
 ```
 
-- `journal` 为当日流水账条目数组，按录入顺序排列（流水账 1、2、3…）。
 - 体重一律以公斤（kg）存储；页面上可在「斤 / 公斤」间切换显示（默认斤），单位选择持久化在 `localStorage`（key：`taoguan_weight_unit`），切换时表单已填数字自动换算（斤 ÷ 2 = kg）。
 - 历史记录以表格展示（日期/睡眠/体重/饮食/今日记录/工作/生活和育儿/操作），点「编辑」在模态框中修改。
-- 旧结构记录（`todayRecord`/`dailyLog`/`reflections` 字符串、`sleep` 字符串、`weight` 数字等）读取时自动一次性归一化为新结构（文本合并入 `journal` 单元素数组），编辑保存后落盘为新格式。
+- 旧结构记录（`dailyLog`/`sleep` 字符串、`weight` 数字等）读取时自动一次性归一化为新结构，编辑保存后落盘为新格式。
 
-### 语音转文字 + 智能整理（零 token）
+### 知识点积累（knowledge.html）
 
-在「当日流水账」分区粘贴 iPhone/Mac 系统听写出的口语文字，点【智能整理】（`js/smart.js`，**纯前端规则，不调任何 AI API、内容不出本机**）：
+数据文件 `data/knowledge.json`（本地模式 key：`taoguan_records_data_knowledge_json`），JSON 数组，每条：
 
-1. **清洗**：删除典型口水词（嗯/呃/然后呢/就是就是/对对对/你知道吧/对吧/可以说等，同时充当断句点）、合并重复标点、去多余空格。
-2. **分段**：按句读断句（每句句号收尾），在 上午/中午/下午/晚上/深夜/凌晨/早上/今早/昨晚 等时间词前另起一段。
-3. **存条目**：结果追加为「流水账 N」条目（可再编辑、可删除），清空粘贴框。
-4. **填充栏目**：对当天全部流水账合并文本做规则提取——睡眠（昨晚 X 睡/今早 X 起，时间归一化为 HH:MM）、体重（数字+斤/公斤，自动换算 kg，睡前→night、早起/空腹→morning）、饮食/工作/育儿（按关键词整句追加、自动去重）。
+```json
+{ "id": "...", "date": "YYYY-MM-DD", "source": "知识来源（可空）", "point": "知识点", "insight": "心得感悟（可空）", "createdAt": "...", "updatedAt": "..." }
+```
 
-提取只改表单状态，检查无误后点「保存记录」才落盘。已知局限：规则匹配靠关键词，口语隐喻、同音误字、上下文缺失（如"轻了2斤"）可能提取不准，整理后请人工检查。
+同一天允许多条记录，各自独立；列表按日期倒序、同日期按 createdAt 倒序；读取时自动过滤缺 `id` 的坏条目。
 
 > 安全说明：令牌只存在你自己浏览器的 localStorage 里，不会进入仓库代码。请勿在公共电脑上保存令牌；若怀疑令牌泄漏，立即在 GitHub 上吊销并重新生成。
 
@@ -84,5 +83,5 @@ python3 -m http.server 8000
 ```
 index.html  daily.html  parenting.html  knowledge.html  reading.html  stocks.html
 css/style.css
-js/config.js  js/storage.js  js/common.js  js/smart.js  js/daily.js
+js/config.js  js/storage.js  js/common.js  js/daily.js  js/knowledge.js
 ```
