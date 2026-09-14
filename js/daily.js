@@ -108,10 +108,11 @@
       rec.parenting && typeof rec.parenting === "object"
         ? {
             life: strOrEmpty(rec.parenting.life),
+            lifeMindful: strOrEmpty(rec.parenting.lifeMindful),
             mindful: strOrEmpty(rec.parenting.mindful),
             reflection: strOrEmpty(rec.parenting.reflection),
           }
-        : { life: strOrEmpty(rec.lifeParenting), mindful: "", reflection: "" };
+        : { life: strOrEmpty(rec.lifeParenting), lifeMindful: "", mindful: "", reflection: "" };
 
     return {
       id: rec.id || newId(),
@@ -147,6 +148,7 @@
       todayRecord: q("today-record"),
       work: q("work"),
       pLife: q("parenting-life"),
+      lifeMindful: q("life-mindful"),
       pMindful: q("parenting-mindful"),
       pReflection: q("parenting-reflection"),
     };
@@ -163,6 +165,7 @@
       work: f.work.value.trim(),
       parenting: {
         life: f.pLife.value.trim(),
+        lifeMindful: f.lifeMindful.value.trim(),
         mindful: f.pMindful.value.trim(),
         reflection: f.pReflection.value.trim(),
       },
@@ -181,6 +184,7 @@
     f.todayRecord.value = rec.todayRecord || "";
     f.work.value = rec.work || "";
     f.pLife.value = rec.parenting.life || "";
+    f.lifeMindful.value = rec.parenting.lifeMindful || "";
     f.pMindful.value = rec.parenting.mindful || "";
     f.pReflection.value = rec.parenting.reflection || "";
     if (f.weekday) {
@@ -199,6 +203,7 @@
     f.todayRecord.value = "";
     f.work.value = "";
     f.pLife.value = "";
+    f.lifeMindful.value = "";
     f.pMindful.value = "";
     f.pReflection.value = "";
   }
@@ -425,13 +430,14 @@
   }
 
   function cellParentingHtml(rec) {
-    const full = [rec.parenting.life, rec.parenting.mindful, rec.parenting.reflection]
+    const full = [rec.parenting.life, rec.parenting.lifeMindful, rec.parenting.mindful, rec.parenting.reflection]
       .filter((s) => s && s.trim())
       .join("\n");
     return clampCell(
       labeledLines([
-        { label: "生活&育儿 ", text: rec.parenting.life },
-        { label: "正念 ", text: rec.parenting.mindful },
+        { label: "流水账 ", text: rec.parenting.life },
+        { label: "生活正念 ", text: rec.parenting.lifeMindful },
+        { label: "育儿正念 ", text: rec.parenting.mindful },
         { label: "反思 ", text: rec.parenting.reflection },
       ]),
       full
@@ -496,7 +502,7 @@
       "</colgroup>" +
       "<thead><tr>" +
       "<th>日期</th><th>睡眠</th><th>体重</th><th>饮食</th>" +
-      "<th>今日记录</th><th>工作</th><th>生活和育儿</th><th>操作</th>" +
+      "<th>今日记录</th><th>工作</th><th>生活流水账</th><th>操作</th>" +
       "</tr></thead>" +
       "<tbody>" + rows + "</tbody>" +
       "</table>";
