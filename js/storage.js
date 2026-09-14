@@ -25,9 +25,15 @@
     return Boolean(getToken());
   }
 
-  function apiUrl() {
+  function apiUrl(filePath) {
     const { owner, repo } = config();
-    return `https://api.github.com/repos/${owner}/${repo}/contents/${FILE_PATH}`;
+    return `https://api.github.com/repos/${owner}/${repo}/contents/${filePath || FILE_PATH}`;
+  }
+
+  // 本地模式的存储 key：默认日记文件沿用旧 key 兼容已有本地数据，其它文件按路径派生
+  function localKey(filePath) {
+    if (!filePath || filePath === FILE_PATH) return LOCAL_KEY;
+    return "taoguan_records_" + String(filePath).replace(/[^a-zA-Z0-9]+/g, "_");
   }
 
   function authHeaders(extra) {
@@ -61,6 +67,20 @@
     return [];
   }
 
+  // GitHub：GET（raw）→ JSON 数组；404 视为空数组
+  async function githubLoad(filePath) {
+    const res = await fetch(apiUrl(filePath), {
+      // no-store：避免浏览器缓存把 raw 响应当成 json 元数据（会导致 sha 丢失、写入 422）
+      cache: "no-store",
+      headers: authHeaders({ Accept: "application/vnd.github.raw+json" }),
+    });
+    if (res.status === 404) return [];
+    if (!res.ok) throw apiError("GitHub 读取失败", res.status, await readErrDetail(res));
+    const text = await res.text();
+    if (!text.trim()) return [];
+    return normalizeArray(JSON.parse(text));
+  }
+
   // 读取 GitHub 错误响应里的 message 字段（排查 401/403 等必备）
   async function readErrDetail(res) {
     try {
@@ -77,23 +97,9 @@
     return err;
   }
 
-  // GitHub：GET（raw）→ JSON 数组；404 视为空数组
-  async function githubLoad() {
-    const res = await fetch(apiUrl(), {
-      // no-store：避免浏览器缓存把 raw 响应当成 json 元数据（会导致 sha 丢失、写入 422）
-      cache: "no-store",
-      headers: authHeaders({ Accept: "application/vnd.github.raw+json" }),
-    });
-    if (res.status === 404) return [];
-    if (!res.ok) throw apiError("GitHub 读取失败", res.status, await readErrDetail(res));
-    const text = await res.text();
-    if (!text.trim()) return [];
-    return normalizeArray(JSON.parse(text));
-  }
-
   // GitHub：先 GET 拿 sha，再 PUT base64 内容；409 冲突时重新 GET 再试一次
-  async function githubPut(records, retried) {
-    const getRes = await fetch(apiUrl(), { cache: "no-store", headers: authHeaders() });
+  async function githubPut(records, filePath, retried) {
+    const getRes = await fetch(apiUrl(filePath), { cache: "no-store", headers: authHeaders() });
     let sha;
     if (getRes.status === 404) {
       sha = undefined; // 文件尚不存在，直接创建
@@ -104,30 +110,30 @@
     }
 
     const body = {
-      message: "更新每日记录",
+      message: "更新记录数据",
       content: base64EncodeUtf8(JSON.stringify(records, null, 2)),
     };
     if (sha) body.sha = sha;
 
-    const putRes = await fetch(apiUrl(), {
+    const putRes = await fetch(apiUrl(filePath), {
       method: "PUT",
       headers: authHeaders(),
       body: JSON.stringify(body),
     });
     if (putRes.ok) return records;
     if (putRes.status === 409 && !retried) {
-      return githubPut(records, true);
+      return githubPut(records, filePath, true);
     }
     throw apiError("GitHub 写入失败", putRes.status, await readErrDetail(putRes));
   }
 
-  async function githubSave(records) {
-    return githubPut(records, false);
+  async function githubSave(records, filePath) {
+    return githubPut(records, filePath, false);
   }
 
-  function localLoad() {
+  function localLoad(filePath) {
     try {
-      const raw = localStorage.getItem(LOCAL_KEY);
+      const raw = localStorage.getItem(localKey(filePath));
       if (!raw) return [];
       return normalizeArray(JSON.parse(raw));
     } catch (e) {
@@ -136,8 +142,8 @@
     }
   }
 
-  function localSave(records) {
-    localStorage.setItem(LOCAL_KEY, JSON.stringify(records));
+  function localSave(records, filePath) {
+    localStorage.setItem(localKey(filePath), JSON.stringify(records));
     return records;
   }
 
@@ -145,13 +151,13 @@
     FILE_PATH,
     LOCAL_KEY,
     isGitHubMode,
-    load() {
-      return isGitHubMode() ? githubLoad() : Promise.resolve(localLoad());
+    load(filePath) {
+      return isGitHubMode() ? githubLoad(filePath) : Promise.resolve(localLoad(filePath));
     },
-    save(records) {
+    save(records, filePath) {
       return isGitHubMode()
-        ? githubSave(records)
-        : Promise.resolve(localSave(records));
+        ? githubSave(records, filePath)
+        : Promise.resolve(localSave(records, filePath));
     },
   };
 })();
