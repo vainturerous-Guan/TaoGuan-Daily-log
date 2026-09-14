@@ -6,7 +6,7 @@
   <title>知识点积累 · 陶关每日记录</title>
   <meta name="description" content="工作学习中的知识点随手收集整理。">
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="css/style.css?v=20260914">
+  <link rel="stylesheet" href="css/style.css?v=20260914r">
 </head>
 <body>
   <header class="site-header">
@@ -25,9 +25,43 @@
 
   <main>
     <h1 class="page-title">💡 知识点积累</h1>
-    <section class="card placeholder-card">
-      <p class="placeholder-desc">工作学习中遇到的知识点、技巧与备忘，随手收集、定期整理。</p>
-      <p class="placeholder-note">🚧 内容建设中，敬请期待～</p>
+
+    <section class="card form-card" aria-labelledby="form-title">
+      <h2 id="form-title" class="card-title">记录知识点</h2>
+      <form id="knowledge-form" novalidate>
+        <div class="form-row date-row">
+          <div class="form-field date-field">
+            <label for="record-date">日期</label>
+            <input type="date" id="record-date" required>
+            <span class="weekday" id="weekday-display"></span>
+          </div>
+          <div class="form-field">
+            <label for="knowledge-source">知识来源</label>
+            <input type="text" id="knowledge-source" placeholder="书/文章/课程/对话…" maxlength="100">
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="knowledge-point">知识点</label>
+          <textarea id="knowledge-point" rows="4" placeholder="今天学到的知识点，记下来～"></textarea>
+        </div>
+
+        <div class="form-field">
+          <label for="knowledge-insight">心得感悟</label>
+          <textarea id="knowledge-insight" rows="3" placeholder="联想到的、想实践的（可留空）"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" id="submit-btn">保存记录</button>
+        </div>
+      </form>
+    </section>
+
+    <section aria-labelledby="history-title">
+      <h2 id="history-title" class="card-title history-title">历史记录</h2>
+      <p id="knowledge-loading" class="loading-hint">加载中…</p>
+      <div id="knowledge-list" class="knowledge-list"></div>
+      <p class="empty-hint" id="empty-hint" hidden>还没有知识点记录，从今天的开始吧～</p>
     </section>
   </main>
 
@@ -35,7 +69,9 @@
     <p>© <span class="current-year">2026</span> 陶关每日记录 · 用心记录每一天</p>
   </footer>
 
-  <script src="js/config.js?v=20260914"></script>
-  <script src="js/common.js?v=20260914"></script>
+  <script src="js/config.js?v=20260914r"></script>
+  <script src="js/common.js?v=20260914r"></script>
+  <script src="js/storage.js?v=20260914r"></script>
+  <script src="js/knowledge.js?v=20260914r"></script>
 </body>
 </html>
