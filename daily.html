@@ -6,7 +6,7 @@
   <title>生活日常记录 · 陶关每日记录</title>
   <meta name="description" content="今日一句话总结、睡眠饮食、体重与每日记录。">
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="css/style.css?v=20260911b">
+  <link rel="stylesheet" href="css/style.css?v=20260914">
 </head>
 <body>
   <header class="site-header">
@@ -80,11 +80,6 @@
         </fieldset>
 
         <div class="form-field">
-          <label for="today-record">今日记录（流水账/感悟）</label>
-          <textarea id="today-record" rows="4" placeholder="今天都做了什么、有什么感悟，都写在这里～"></textarea>
-        </div>
-
-        <div class="form-field">
           <label for="work">个人工作完成情况</label>
           <textarea id="work" rows="3" placeholder="今天的工作完成情况"></textarea>
         </div>
@@ -97,6 +92,16 @@
           <textarea id="parenting-mindful" rows="2" placeholder="今天育儿中做得好的、值得保持的地方"></textarea>
           <label for="parenting-reflection">育儿反思及提升点</label>
           <textarea id="parenting-reflection" rows="2" placeholder="可以做得更好的地方"></textarea>
+        </fieldset>
+
+        <fieldset class="form-field journal-group">
+          <legend>当日流水账</legend>
+          <textarea id="journal-paste" class="journal-paste" rows="3" placeholder="在这里粘贴语音转文字的内容"></textarea>
+          <div class="journal-actions">
+            <button type="button" class="btn btn-primary smart-organize-btn" id="smart-organize-btn">智能整理</button>
+            <span class="journal-hint">纯本地规则整理，内容不会上传</span>
+          </div>
+          <div id="journal-list" class="journal-list"></div>
         </fieldset>
 
         <div class="form-actions">
@@ -118,9 +123,10 @@
     <p>© <span class="current-year">2026</span> 陶关每日记录 · 用心记录每一天</p>
   </footer>
 
-  <script src="js/config.js?v=20260911b"></script>
-  <script src="js/common.js?v=20260911b"></script>
-  <script src="js/storage.js?v=20260911b"></script>
-  <script src="js/daily.js?v=20260911b"></script>
+  <script src="js/config.js?v=20260914"></script>
+  <script src="js/common.js?v=20260914"></script>
+  <script src="js/storage.js?v=20260914"></script>
+  <script src="js/smart.js?v=20260914"></script>
+  <script src="js/daily.js?v=20260914"></script>
 </body>
 </html>
