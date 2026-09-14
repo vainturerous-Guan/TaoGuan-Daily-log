@@ -94,37 +94,5 @@
     },
     "createdAt": 1789120127340,
     "updatedAt": 1789120127340
-  },
-  {
-    "id": "mu135esorjydm5",
-    "createdAt": 1789380837672,
-    "updatedAt": 1789380837672,
-    "date": "2026-09-14",
-    "summary": "",
-    "sleep": {
-      "bedTime": "11:30",
-      "wakeTime": "07:00"
-    },
-    "weight": {
-      "night": 60,
-      "morning": 59
-    },
-    "diet": {
-      "snacks": "下午喝了杯奶茶",
-      "meals": "早餐吃了包子豆浆"
-    },
-    "journal": [
-      {
-        "id": "mu135dl7a101vn",
-        "createdAt": 1789380836108,
-        "text": "昨晚11点半睡，今早7点醒来。睡前体重120斤，早上空腹59公斤。早餐吃了包子豆浆，下午喝了杯奶茶。改了一下午PPT，陪陶陶练琴。"
-      }
-    ],
-    "work": "改了一下午PPT",
-    "parenting": {
-      "life": "陪陶陶练琴",
-      "mindful": "",
-      "reflection": ""
-    }
   }
 ]
