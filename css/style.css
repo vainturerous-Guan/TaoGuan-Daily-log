@@ -922,3 +922,100 @@ body.modal-open {
     border-radius: 16px 16px 0 0;
   }
 }
+
+/* ===== 当日流水账（语音转文字 + 智能整理） ===== */
+
+.journal-paste {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+  font-size: 1rem;
+  font-family: inherit;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.journal-paste:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.journal-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  margin: 0.6rem 0 0.8rem;
+}
+
+.journal-hint {
+  color: var(--text-soft);
+  font-size: 0.85rem;
+}
+
+.journal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.journal-entry {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.6rem 0.75rem;
+}
+
+.journal-entry-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.journal-entry-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--accent-dark);
+}
+
+.journal-entry-del {
+  background: none;
+  border: none;
+  padding: 0.1rem 0.3rem;
+  color: var(--text-soft);
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.journal-entry-del:hover {
+  color: #b23a2a;
+}
+
+.journal-entry textarea {
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.97rem;
+  font-family: inherit;
+  line-height: 1.7;
+  resize: vertical;
+}
+
+.journal-entry textarea:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.journal-count {
+  margin-bottom: 0.15rem;
+}
