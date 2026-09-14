@@ -47,7 +47,7 @@
   "diet": { "snacks": "零食饮料", "meals": "正餐" },
   "todayRecord": "今日记录（流水账/感悟）",
   "work": "个人工作完成情况",
-  "parenting": { "life": "生活&育儿完成情况", "mindful": "育儿正念", "reflection": "育儿反思及提升点" },
+  "parenting": { "life": "生活流水账", "lifeMindful": "生活正念", "mindful": "育儿正念", "reflection": "反思与提升" },
   "createdAt": "...", "updatedAt": "..."
 }
 ```
