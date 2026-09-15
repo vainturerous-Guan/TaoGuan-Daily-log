@@ -988,3 +988,387 @@ body.modal-open {
   color: var(--accent-dark);
   margin-bottom: 0.15rem;
 }
+
+/* ===== 知识点附件区（表单） ===== */
+
+.attach-area {
+  border: 1.5px dashed var(--border);
+  border-radius: 10px;
+  background: #fff;
+  padding: 0.9rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  cursor: pointer;
+  color: var(--text-soft);
+  font-size: 0.95rem;
+  text-align: center;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.attach-area:hover,
+.attach-area:focus-visible {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  outline: none;
+}
+
+.attach-area-icon {
+  font-size: 1.15rem;
+}
+
+.attach-folder-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.attach-folder-status {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+}
+
+.attach-list {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.attach-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.4rem 0.7rem;
+}
+
+.attach-thumb {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.attach-thumb-file {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  background: var(--accent-soft);
+}
+
+.attach-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.92rem;
+}
+
+.attach-size {
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  flex-shrink: 0;
+}
+
+.attach-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-soft);
+  font-size: 0.95rem;
+  line-height: 1;
+  padding: 0.25rem 0.4rem;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.attach-remove:hover {
+  color: #b23a2a;
+  background: var(--accent-soft);
+}
+
+/* ===== 知识点附件展示（历史记录） ===== */
+
+.knowledge-attachments {
+  margin-top: 0.7rem;
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--border);
+}
+
+.knowledge-attachments-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent-dark);
+  margin-bottom: 0.4rem;
+}
+
+.att-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.att-image {
+  margin: 0;
+  width: 120px;
+}
+
+.att-image img {
+  width: 120px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  cursor: zoom-in;
+  display: block;
+  background: #fff;
+}
+
+.att-image figcaption {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+  margin-top: 0.2rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.att-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  padding: 0.5rem 0.8rem;
+  text-decoration: none;
+  color: var(--text);
+  font-size: 0.9rem;
+  max-width: 100%;
+}
+
+.att-file:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.att-file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+
+.att-file-size {
+  color: var(--text-soft);
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.att-file-dl {
+  color: var(--accent-dark);
+  font-weight: 600;
+  font-size: 0.82rem;
+  flex-shrink: 0;
+}
+
+/* ===== 附件图片放大预览 ===== */
+
+.kl-lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(40, 32, 24, 0.82);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.2rem;
+  cursor: zoom-out;
+}
+
+.kl-lightbox[hidden] {
+  display: none;
+}
+
+.kl-lightbox img {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 10px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  background: #fff;
+}
+
+/* ===== 股票频道：左侧抽屉页签 ===== */
+
+.stocks-main {
+  max-width: 1280px;
+}
+
+.stocks-layout {
+  position: relative;
+}
+
+.drawer-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  padding: 0.35rem 0.8rem;
+  color: var(--text);
+  cursor: pointer;
+  margin-bottom: 0.8rem;
+}
+
+.drawer-toggle:hover {
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+.stocks-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 230px;
+  padding: 4rem 0.9rem 1rem;
+  background: var(--bg-card);
+  border-right: 1px solid var(--border);
+  box-shadow: var(--shadow-hover);
+  z-index: 40;
+  transform: translateX(-105%);
+  transition: transform 0.25s ease;
+  overflow-y: auto;
+}
+
+.stocks-drawer.open {
+  transform: translateX(0);
+}
+
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(60, 50, 40, 0.4);
+  z-index: 39;
+}
+
+.drawer-overlay[hidden] {
+  display: none;
+}
+
+.drawer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.drawer-tab {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+  font-size: 0.98rem;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.drawer-tab:hover {
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+.drawer-tab[aria-current="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-dark);
+  font-weight: 600;
+}
+
+.stocks-content {
+  min-width: 0;
+}
+
+.tab-panel[hidden] {
+  display: none;
+}
+
+.monitor-frame {
+  display: block;
+  width: 100%;
+  height: calc(100vh - 8.5rem);
+  min-height: 540px;
+  border: none;
+  border-radius: var(--radius);
+  background: #f5f6f7;
+}
+
+@media (min-width: 900px) {
+  .stocks-layout {
+    display: flex;
+    gap: 1.1rem;
+    align-items: flex-start;
+  }
+
+  .drawer-toggle,
+  .drawer-overlay {
+    display: none;
+  }
+
+  .stocks-drawer {
+    position: static;
+    width: 190px;
+    flex-shrink: 0;
+    padding: 0;
+    background: transparent;
+    border-right: none;
+    box-shadow: none;
+    z-index: auto;
+    transform: none;
+    transition: none;
+    overflow: visible;
+  }
+
+  .monitor-frame {
+    height: calc(100vh - 7.5rem);
+    min-height: 620px;
+  }
+}
+
+/* ===== 交易体系学习 ===== */
+
+.learning-name-tag {
+  color: var(--accent-dark);
+  font-size: 0.85rem;
+  background: var(--accent-soft);
+  border-radius: 999px;
+  padding: 0.05rem 0.6rem;
+  font-weight: 600;
+}
+
+.learning-time {
+  margin-left: auto;
+  color: var(--text-soft);
+  font-size: 0.85rem;
+}

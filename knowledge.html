@@ -6,7 +6,7 @@
   <title>知识点积累 · 陶关每日记录</title>
   <meta name="description" content="工作学习中的知识点随手收集整理。">
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="css/style.css?v=20260914r">
+  <link rel="stylesheet" href="css/style.css?v=20260914">
 </head>
 <body>
   <header class="site-header">
@@ -51,6 +51,20 @@
           <textarea id="knowledge-insight" rows="3" placeholder="联想到的、想实践的（可留空）"></textarea>
         </div>
 
+        <div class="form-field">
+          <label id="attach-label">附件（可选，可添加多个）</label>
+          <div class="attach-area" id="attach-area" tabindex="0" role="button" aria-labelledby="attach-label">
+            <span class="attach-area-icon">📎</span>
+            <span class="attach-area-text">点击选择文件，或把图片直接粘贴到这里</span>
+            <input type="file" id="attach-input" multiple hidden>
+          </div>
+          <div class="attach-folder-row">
+            <button type="button" class="btn btn-ghost btn-small" id="attach-folder-btn">选择本地保存文件夹</button>
+            <span class="attach-folder-status" id="attach-folder-status"></span>
+          </div>
+          <ul class="attach-list" id="attach-list"></ul>
+        </div>
+
         <div class="form-actions">
           <button type="submit" class="btn btn-primary" id="submit-btn">保存记录</button>
         </div>
@@ -69,9 +83,9 @@
     <p>© <span class="current-year">2026</span> 陶关每日记录 · 用心记录每一天</p>
   </footer>
 
-  <script src="js/config.js?v=20260914r"></script>
-  <script src="js/common.js?v=20260914r"></script>
-  <script src="js/storage.js?v=20260914r"></script>
-  <script src="js/knowledge.js?v=20260914r"></script>
+  <script src="js/config.js?v=20260914"></script>
+  <script src="js/common.js?v=20260914"></script>
+  <script src="js/storage.js?v=20260914"></script>
+  <script src="js/knowledge.js?v=20260914"></script>
 </body>
 </html>

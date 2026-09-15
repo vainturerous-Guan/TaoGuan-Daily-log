@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A股行情监控台</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #f5f6f7; color: #333; line-height: 1.6;
+}
+.container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: white; padding: 24px 20px; border-radius: 12px;
+    margin-bottom: 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 12px;
+}
+header h1 { font-size: 22px; font-weight: 600; }
+.header-right { display: flex; align-items: center; gap: 16px; font-size: 13px; color: #aaa; flex-wrap: wrap; }
+.status-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: #22c55e;
+    display: inline-block; animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+.refresh-btn {
+    background: #2563eb; color: white; border: none;
+    padding: 8px 20px; border-radius: 6px; cursor: pointer;
+    font-size: 14px; font-weight: 500; transition: background .2s;
+}
+.refresh-btn:hover { background: #1d4ed8; }
+.refresh-btn:active { transform: scale(0.98); }
+.refresh-btn:disabled { background: #94a3b8; cursor: not-allowed; }
+
+.section-title {
+    font-size: 16px; font-weight: 600; color: #1e293b;
+    margin: 24px 0 12px; padding-left: 8px;
+    border-left: 4px solid #2563eb;
+}
+
+.fund-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;
+}
+.fund-card {
+    background: white; border-radius: 10px; padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06); text-align: center;
+}
+.fund-label { font-size: 12px; color: #64748b; margin-bottom: 6px; }
+.fund-value { font-size: 22px; font-weight: 700; }
+.fund-sub { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+
+.index-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;
+}
+.index-card {
+    background: white; border-radius: 10px; padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    transition: transform .15s, box-shadow .15s;
+}
+.index-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+.index-name { font-size: 14px; color: #64748b; margin-bottom: 4px; }
+.index-price { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+.index-change { font-size: 13px; font-weight: 500; }
+.index-volume { font-size: 12px; color: #94a3b8; margin-top: 6px; }
+
+.table-wrap {
+    background: white; border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06); overflow: hidden;
+}
+table { width: 100%; border-collapse: collapse; }
+th {
+    background: #f8fafc; font-size: 13px; color: #64748b;
+    font-weight: 600; padding: 12px 16px; text-align: left;
+}
+th:first-child, td:first-child { padding-left: 20px; }
+th:last-child, td:last-child { padding-right: 20px; }
+td { padding: 14px 16px; font-size: 14px; border-top: 1px solid #f1f5f9; }
+tr:hover td { background: #f8fafc; }
+.stock-name { font-weight: 600; color: #1e293b; }
+.stock-code { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+.price { font-size: 15px; font-weight: 600; }
+.change-pill {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 13px; font-weight: 600;
+}
+.pill-up { background: #fef2f2; color: #ef4444; }
+.pill-down { background: #f0fdf4; color: #22c55e; }
+.pill-flat { background: #f8fafc; color: #64748b; }
+
+.strategy-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;
+}
+.strategy-card {
+    background: white; border-radius: 10px; padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    border-left: 4px solid #2563eb;
+}
+.strategy-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+}
+.strategy-title { font-size: 15px; font-weight: 600; color: #1e293b; }
+.strategy-code { font-size: 12px; color: #94a3b8; margin-left: 4px; }
+.strategy-tag {
+    font-size: 11px; color: #2563eb; background: #eff6ff;
+    padding: 2px 8px; border-radius: 4px; font-weight: 500;
+}
+.strategy-row {
+    display: flex; justify-content: space-between; padding: 6px 0;
+    font-size: 13px; border-bottom: 1px dashed #f1f5f9;
+}
+.strategy-row:last-child { border-bottom: none; }
+.strategy-label { color: #64748b; }
+.strategy-value { color: #1e293b; font-weight: 500; }
+.strategy-price { font-family: 'SF Mono', Monaco, monospace; }
+
+.trade-type { font-size: 12px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+.trade-buy { background: #fef2f2; color: #ef4444; }
+.trade-sell { background: #f0fdf4; color: #22c55e; }
+
+.up { color: #ef4444; }
+.down { color: #22c55e; }
+.flat { color: #64748b; }
+
+.loading { text-align: center; padding: 40px; color: #94a3b8; }
+.error { background: #fef2f2; color: #991b1b; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; }
+.footer-note {
+    text-align: center; font-size: 12px; color: #94a3b8;
+    margin-top: 24px; padding: 16px;
+}
+.auto-info {
+    background: #eff6ff; color: #1e40af; padding: 8px 14px;
+    border-radius: 6px; font-size: 12px; display: inline-flex;
+    align-items: center; gap: 6px;
+}
+
+@media (max-width: 640px) {
+    .index-grid { grid-template-columns: repeat(2, 1fr); }
+    .fund-grid { grid-template-columns: repeat(2, 1fr); }
+    th, td { padding: 10px 8px; font-size: 12px; }
+    th:first-child, td:first-child { padding-left: 12px; }
+    th:last-child, td:last-child { padding-right: 12px; }
+    .stock-code { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <div><h1>📊 A股行情监控台</h1></div>
+        <div class="header-right">
+            <div class="auto-info">
+                <span class="status-dot"></span>
+                <span id="autoStatus">自动刷新：交易日 09:45 / 13:30</span>
+            </div>
+            <span id="lastUpdate">--</span>
+            <button class="refresh-btn" id="refreshBtn" onclick="manualRefresh()">🔄 立即查询</button>
+        </div>
+    </header>
+
+    <div id="errorBox"></div>
+
+    <div class="section-title">资金概览</div>
+    <div class="fund-grid" id="fundGrid">
+        <div class="loading">加载中...</div>
+    </div>
+
+    <div class="section-title">主要指数行情</div>
+    <div class="index-grid" id="indexGrid">
+        <div class="loading">加载中...</div>
+    </div>
+
+    <div class="section-title">持仓明细</div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>证券名称/市值</th>
+                    <th>参考盈亏</th>
+                    <th>持仓/可用</th>
+                    <th>成本价/现价</th>
+                    <th>交易明细</th>
+                </tr>
+            </thead>
+            <tbody id="stockTable">
+                <tr><td colspan="5" class="loading">加载中...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section-title">观察池</div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>名称</th>
+                    <th>最新价</th>
+                    <th>涨跌额</th>
+                    <th>涨跌幅</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="watchlistTable">
+                <tr><td colspan="5" class="loading">加载中...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section-title">已清仓池</div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>证券名称/市值</th>
+                    <th>参考盈亏</th>
+                    <th>持仓/可用</th>
+                    <th>成本价/现价</th>
+                    <th>交易明细</th>
+                </tr>
+            </thead>
+            <tbody id="closedTable">
+                <tr><td colspan="5" class="loading">加载中...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- K线图弹窗 -->
+    <div id="chartModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center;">
+        <div style="background:white; border-radius:12px; width:90%; max-width:900px; max-height:90%; overflow:auto; padding:20px; position:relative;">
+            <button onclick="closeChart()" style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:24px; cursor:pointer; color:#64748b;">×</button>
+            <h3 id="chartTitle" style="margin-bottom:16px; font-size:18px;"></h3>
+            <img id="chartImg" style="width:100%; border-radius:8px;" src="" alt="K线图">
+            <div style="text-align:center; margin-top:12px; color:#94a3b8; font-size:12px;">
+                数据来源：东方财富网 · 点击右上角 × 关闭
+            </div>
+        </div>
+    </div>
+
+    <!-- 交易明细弹窗 -->
+    <div id="tradesModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center;">
+        <div style="background:white; border-radius:12px; width:90%; max-width:800px; max-height:90%; overflow:auto; padding:20px; position:relative;">
+            <button onclick="closeTrades()" style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:24px; cursor:pointer; color:#64748b;">×</button>
+            <h3 id="tradesTitle" style="margin-bottom:16px; font-size:18px;"></h3>
+            <div class="table-wrap" style="margin-bottom:12px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>交收日期</th>
+                            <th>业务</th>
+                            <th>成交价格</th>
+                            <th>成交数量</th>
+                            <th>成交金额</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tradesModalBody"></tbody>
+                </table>
+            </div>
+            <div style="text-align:center; color:#94a3b8; font-size:12px;">
+                点击右上角 × 关闭
+            </div>
+        </div>
+    </div>
+
+    <div class="section-title">当前策略汇总</div>
+    <div class="strategy-grid" id="strategyGrid"></div>
+
+    <div class="section-title">作战计划预警（8月第1周）</div>
+    <div class="strategy-grid" id="planGrid"></div>
+
+    <div class="footer-note">
+        数据来源：东方财富网公开 API · 资金/持仓/交易数据来自银河证券账户截图 · 仅供个人参考，不构成投资建议
+    </div>
+</div>
+
+<script>
+// ==================== 配置 ====================
+const FUND_DATA = {
+    transferTotal: 90000,
+    accountAssets: 90063.12,
+    stockValue: 67023.50,
+    availableCash: 22926.62,
+    refProfit: -4440.78,
+};
+
+const INDEX_LIST = [
+    { name: '上证指数', code: '000001', secid: '1.000001', suffix: 'SH' },
+    { name: '深证成指', code: '399001', secid: '0.399001', suffix: 'SZ' },
+    { name: '创业板指', code: '399006', secid: '0.399006', suffix: 'SZ' },
+    { name: '沪深300',  code: '000300', secid: '1.000300', suffix: 'SH' },
+    { name: '中证1000', code: '000852', secid: '1.000852', suffix: 'SH' },
+];
+
+const PORTFOLIO = [
+    { code: '002920', name: '德赛西威', qty: 300, avail: 300, costPrice: 83.420, curPrice: 83.520, marketValue: 25056.00, refProfit: 30.00, refProfitPct: 0.12, secid: '0.002920' },
+    { code: '159206', name: '卫星ETF永赢', qty: 700, avail: 700, costPrice: 2.307, curPrice: 1.344, marketValue: 940.80, refProfit: -674.10, refProfitPct: -41.66, secid: '0.159206' },
+    { code: '160225', name: '新能源汽车LOF', qty: 4500, avail: 4500, costPrice: 1.553, curPrice: 1.658, marketValue: 7461.00, refProfit: 472.50, refProfitPct: 6.76, secid: '0.160225' },
+    { code: '513500', name: '标普500ETF博时', qty: 100, avail: 100, costPrice: 2.507, curPrice: 2.676, marketValue: 267.60, refProfit: 16.90, refProfitPct: 6.74, secid: '1.513500' },
+    { code: '518880', name: '黄金ETF华安', qty: 1600, avail: 1600, costPrice: 9.249, curPrice: 9.083, marketValue: 14532.80, refProfit: -265.60, refProfitPct: -1.79, secid: '1.518880' },
+    { code: '562500', name: '机器人ETF华夏', qty: 1000, avail: 1000, costPrice: 1.318, curPrice: 0.926, marketValue: 926.00, refProfit: -392.00, refProfitPct: -29.74, secid: '1.562500' },
+    { code: '600111', name: '北方稀土', qty: 400, avail: 400, costPrice: 46.380, curPrice: 37.120, marketValue: 14848.00, refProfit: -3304.00, refProfitPct: -19.98, secid: '1.600111' },
+];
+
+// 观察池：仅包含非持仓、非已清仓的观察标的
+const WATCHLIST = [
+    { code: '510330', name: '沪深300ETF华夏', secid: '1.510330' },
+    { code: '563800', name: '中证A50ETF', secid: '1.563800' },
+    { code: '588290', name: '科创半导体ETF华安', secid: '1.588290' },
+    { code: '512660', name: '军工ETF国泰', secid: '1.512660' },
+    { code: '603501', name: '豪威集团', secid: '1.603501' },
+];
+
+// 已清仓池：曾经持仓、现已清仓的标的
+const CLOSED = [
+    { code: '603993', name: '洛阳钼业', secid: '1.603993' },
+    { code: '512760', name: '芯片ETF国泰', secid: '1.512760' },
+    { code: '588750', name: '科创芯片ETF汇添富', secid: '1.588750' },
+    { code: '513180', name: '恒生科技ETF华夏', secid: '1.513180' },
+    { code: '562590', name: '半导体设备ETF华夏', secid: '1.562590' },
+    { code: '300255', name: '常山药业', secid: '0.300255' },
+    { code: '002354', name: '天娱数科', secid: '0.002354' },
+    { code: '603002', name: '宏昌电子', secid: '0.603002' },
+];
+
+const TRADES = [
+    { date: '2026-09-14', code: '603993', name: '洛阳钼业', type: '卖出', price: 17.89, qty: 100, amount: 1789.00, note: '止损：收破18.0假突破确认，实亏-107' },
+    { date: '2026-09-11', code: '512760', name: '芯片ETF国泰', type: '卖出', price: 1.021, qty: 2800, amount: 2858.80, note: '止损清仓：收破1.031' },
+    { date: '2026-09-11', code: '588750', name: '科创芯片ETF汇添富', type: '卖出', price: 2.180, qty: 1000, amount: 2180.00, note: '止损清仓：收破2.193' },
+    { date: '2026-09-11', code: '600111', name: '北方稀土', type: '卖出', price: 37.00, qty: 100, amount: 3700.00 },
+    { date: '2026-09-10', code: '002920', name: '德赛西威', type: '买入', price: 83.60, qty: 100, amount: 8360.00 },
+    { date: '2026-09-08', code: '603993', name: '洛阳钼业', type: '买入', price: 18.96, qty: 100, amount: 1896.00 },
+    { date: '2026-09-04', code: '512760', name: '芯片ETF', type: '买入', price: 1.050, qty: 2800, amount: 2940.00 },
+    { date: '2026-09-04', code: '588750', name: '科创芯片ETF', type: '买入', price: 2.245, qty: 1000, amount: 2245.00 },
+    { date: '2026-09-03', code: '600111', name: '北方稀土', type: '买入', price: 39.060, qty: 100, amount: 3906.00 },
+    { date: '2026-09-03', code: '513180', name: '恒生科技ETF华夏', type: '卖出', price: 0.574, qty: 6000, amount: 3444.00 },
+    { date: '2026-09-03', code: '562590', name: '半导体设备ETF华夏', type: '卖出', price: 0.970, qty: 1000, amount: 970.00 },
+    { date: '2026-08-31', code: '518880', name: '黄金ETF', type: '买入', price: 9.125, qty: 200, amount: 1825.00 },
+    { date: '2026-08-25', code: '518880', name: '黄金ETF', type: '卖出', price: 9.610, qty: 200, amount: 1922.00 },
+    { date: '2026-08-11', code: '518880', name: '黄金ETF', type: '卖出', price: 9.109, qty: 200, amount: 1821.80 },
+    { date: '2026-08-10', code: '562590', name: '半导体设备ETF华夏', type: '买入', price: 1.049, qty: 1000, amount: 1049.00 },
+    { date: '2026-08-07', code: '159206', name: '卫星ETF', type: '卖出', price: 1.421, qty: 700, amount: 994.70 },
+    { date: '2026-08-06', code: '600111', name: '北方稀土', type: '卖出', price: 42.340, qty: 200, amount: 8468.00 },
+    { date: '2026-08-06', code: '518880', name: '黄金ETF', type: '卖出', price: 8.876, qty: 200, amount: 1775.20 },
+    { date: '2026-08-04', code: '159206', name: '卫星ETF', type: '卖出', price: 1.320, qty: 1500, amount: 1980.00 },
+    { date: '2026-07-27', code: '513500', name: '标普500', type: '买入', price: 2.506, qty: 100, amount: 250.60 },
+    { date: '2026-07-24', code: '600111', name: '北方稀土', type: '买入', price: 39.390, qty: 100, amount: 3939.00 },
+    { date: '2026-07-21', code: '562500', name: '机器人ETF', type: '卖出', price: 0.960, qty: 1000, amount: 960.00 },
+    { date: '2026-07-21', code: '159206', name: '卫星ETF', type: '卖出', price: 1.290, qty: 2900, amount: 3741.00 },
+    { date: '2026-07-21', code: '160225', name: '新汽车', type: '买入', price: 1.814, qty: 500, amount: 907.00 },
+    { date: '2026-07-21', code: '160225', name: '新汽车', type: '卖出', price: 1.771, qty: 500, amount: 885.00 },
+    { date: '2026-07-21', code: '160225', name: '新汽车', type: '卖出', price: 1.712, qty: 500, amount: 856.00 },
+    { date: '2026-07-20', code: '600111', name: '北方稀土', type: '卖出', price: 37.320, qty: 100, amount: 3732.00 },
+    { date: '2026-07-20', code: '160225', name: '新汽车', type: '买入', price: 1.680, qty: 500, amount: 840.00 },
+    { date: '2026-07-20', code: '600111', name: '北方稀土', type: '买入', price: 37.670, qty: 100, amount: 3767.00 },
+    { date: '2026-07-17', code: '160225', name: '新汽车', type: '买入', price: 1.749, qty: 500, amount: 874.50 },
+    { date: '2026-07-15', code: '300255', name: '常山药业', type: '卖出', price: 29.290, qty: 100, amount: 2929.00 },
+    { date: '2026-07-15', code: '300255', name: '常山药业', type: '卖出', price: 27.400, qty: 100, amount: 2740.00 },
+    { date: '2026-07-15', code: '600111', name: '北方稀土', type: '买入', price: 39.950, qty: 100, amount: 3995.00 },
+    { date: '2026-07-14', code: '518880', name: '黄金ETF', type: '买入', price: 8.305, qty: 200, amount: 1661.00 },
+    { date: '2026-07-13', code: '160225', name: '新汽车', type: '买入', price: 1.815, qty: 500, amount: 907.50 },
+    { date: '2026-07-10', code: '300255', name: '常山药业', type: '卖出', price: 24.810, qty: 100, amount: 2481.00 },
+    { date: '2026-07-09', code: '160225', name: '新汽车', type: '买入', price: 1.860, qty: 500, amount: 930.00 },
+    { date: '2026-07-08', code: '300255', name: '常山药业', type: '买入', price: 22.810, qty: 100, amount: 2281.00 },
+    { date: '2026-07-08', code: '160225', name: '新汽车', type: '买入', price: 1.906, qty: 500, amount: 953.00 },
+    { date: '2026-07-07', code: '562500', name: '机器人ETF', type: '买入', price: 1.139, qty: 2000, amount: 2278.00 },
+    { date: '2026-07-07', code: '160225', name: '新汽车', type: '买入', price: 1.974, qty: 500, amount: 987.00 },
+    { date: '2026-07-07', code: '600111', name: '北方稀土', type: '买入', price: 47.050, qty: 100, amount: 4705.00 },
+    { date: '2026-07-06', code: '002354', name: '天娱数科', type: '卖出', price: 8.780, qty: 100, amount: 878.00 },
+    { date: '2026-07-03', code: '518880', name: '黄金ETF', type: '卖出', price: 8.707, qty: 200, amount: 1741.40 },
+    { date: '2026-07-01', code: '300255', name: '常山药业', type: '卖出', price: 25.100, qty: 100, amount: 2510.00 },
+    { date: '2026-07-01', code: '160225', name: '新汽车', type: '卖出', price: 1.998, qty: 1000, amount: 1998.00 },
+    { date: '2026-07-01', code: '300255', name: '常山药业', type: '买入', price: 22.990, qty: 100, amount: 2299.00 },
+    { date: '2026-06-30', code: '002354', name: '天娱数科', type: '买入', price: 9.190, qty: 100, amount: 919.00 },
+    { date: '2026-06-30', code: '518880', name: '黄金ETF', type: '买入', price: 8.246, qty: 200, amount: 1649.20 },
+    { date: '2026-06-30', code: '603002', name: '宏昌电子', type: '卖出', price: 23.930, qty: 100, amount: 2393.00 },
+    { date: '2026-06-29', code: '160225', name: '新汽车', type: '买入', price: 1.928, qty: 1000, amount: 1928.00 },
+    { date: '2026-06-29', code: '300255', name: '常山药业', type: '卖出', price: 25.320, qty: 100, amount: 2532.00 },
+    { date: '2026-06-26', code: '160225', name: '新汽车', type: '买入', price: 1.998, qty: 1000, amount: 1998.00 },
+    { date: '2026-06-26', code: '603002', name: '宏昌电子', type: '买入', price: 26.480, qty: 100, amount: 2648.00 },
+    { date: '2026-06-26', code: '002920', name: '德赛西威', type: '买入', price: 80.680, qty: 100, amount: 8068.00 },
+    { date: '2026-06-26', code: '300255', name: '常山药业', type: '买入', price: 23.400, qty: 100, amount: 2340.00 },
+    { date: '2026-06-24', code: '160225', name: '新汽车', type: '买入', price: 1.984, qty: 1000, amount: 1984.00 },
+    { date: '2026-06-24', code: '160225', name: '新汽车', type: '卖出', price: 2.036, qty: 1000, amount: 2036.00 },
+    { date: '2026-06-24', code: '518880', name: '黄金ETF', type: '买入', price: 8.470, qty: 200, amount: 1694.00 },
+    { date: '2026-06-24', code: '300255', name: '常山药业', type: '买入', price: 25.730, qty: 100, amount: 2573.00 },
+];
+
+const STRATEGIES = [
+    {
+        code: '518880', name: '黄金ETF华安',
+        type: '网格交易-到价触发型', status: '执行中(5/5对称+刹车)',
+        basePrice: 9.125,
+        buyTrigger: -5.00, sellTrigger: 5.00,
+        buyRef: 8.669, sellRef: 9.581,
+        buyQty: 200, sellQty: 200,
+        expiry: '2026-09-24',
+        note: '机制（8/31 确认）：券商以最近成交价自动滚基准——8/31 买 9.125 成交后基准 9.125。规则①最多连买2笔后只卖不买 ②破8.22暂停买入复核',
+    },
+    {
+        code: '160225', name: '新能源汽车LOF',
+        type: '网格交易-到价触发型', status: '已暂停(7/21)',
+        basePrice: 1.800,
+        buyTrigger: -3.00, sellTrigger: 5.00,
+        buyRef: 1.746, sellRef: 1.890,
+        buyQty: 500, sellQty: 500,
+        expiry: '2026-09-18',
+    },
+    {
+        code: '300255', name: '常山药业',
+        type: '网格交易-到价触发型', status: '已清仓',
+        basePrice: 25.070,
+        buyTrigger: -10.00, sellTrigger: 9.00,
+        buyRef: 22.560, sellRef: 27.330,
+        buyQty: 100, sellQty: 100,
+        expiry: '2026-09-18',
+    },
+];
+
+const FIELDS = 'f43,f44,f45,f46,f47,f48,f57,f58,f60,f170,f171';
+
+// ==================== 作战计划预警卡（8月第1周） ====================
+const PLAN_CARDS = [
+    {
+        code: '600111', name: '北方稀土', plan: '【方案A 已执行】9/11 上午 T 仓 100 股 @37.00 已撤（实亏 -206）；底仓 400 股 @46.38 中长期持有',
+        triggers: [
+            { kind: 'sellDown', price: 36.69, label: '【底仓最后防线】收盘破 36.69（7 月恐慌底）→ 中长期仓全撤。防线不再下移' },
+            { kind: 'info', price: null, label: '底仓逻辑：H1 净利 +120.5%，稀土价格长逻辑；2% 账户线已书面豁免（唯一例外）' },
+        ],
+    },
+    {
+        code: '002920', name: '德赛西威', plan: '中长期区间仓：✅ 9/10 已加仓 100 股 @83.60（收盘破85条件成立，提前22分钟执行）；现 300 股混合成本 83.42，仓位约 27.8% 已接近单票上限，不再加',
+        triggers: [
+            { kind: 'sellUp', price: 94.50, label: '反弹至 93.5–94.5（大阴线半分位 94.07 + 前平台 93.49）→ 卖 100 股' },
+            { kind: 'sellUp', price: 101.00, label: '站稳 97.7 后 → 101–105 重压区卖 100 股' },
+            { kind: 'sellDown', price: 77.42, label: '止损（9/10 加仓后重算）：账户2%亏损线≈77.42 先于 成本线-15%(70.91) 触发 → 全撤' },
+        ],
+    },
+    {
+        code: '562500', name: '机器人ETF华夏', plan: '等回调再加仓（现持 1000 份，成本 1.318；8/3 已离开 0.92–0.95 买点区，用户确认不追，等下次回调机会）',
+        triggers: [
+            { kind: 'buyDown', price: 0.95, label: '回调至 0.95 下方或出现企稳信号 → 重新评估加仓 1000 份' },
+            { kind: 'info', price: null, label: '8/3 记录：0.977 已离开买点区，明确不追价' },
+        ],
+    },
+    {
+        code: '159206', name: '卫星ETF永赢', plan: '8/4 已执行减仓 1500 份 @1.320，8/7 再减 700 份 @1.421；余 700 份底仓火种',
+        triggers: [
+            { kind: 'sellUp', price: 1.550, label: '若继续反抽至 1.55 附近 → 再减 350 份' },
+            { kind: 'sellDown', price: 1.200, label: '跌破 1.20 → 底仓防守性减半' },
+            { kind: 'info', price: null, label: '底仓定位：商业航天题材保留火种，不再补仓' },
+        ],
+    },
+    {
+        code: '512760', name: '芯片ETF国泰', plan: '❌ 已止损清仓（9/11）：收 1.022 破 1.031 结构线，卖出 2800 份 @1.021，实亏约 81 元（-2.8%）；半导体梯队全部离场',
+        triggers: [
+            { kind: 'info', price: null, label: '复盘：9/4 左侧建仓 @1.050，仅 5 个交易日触发止损；左侧双底策略在加速下跌段失效' },
+            { kind: 'buyDown', price: 0.99, label: '若重新关注：需等重新筑底 + 收盘站回 MA10 后再评估，不左侧接' },
+        ],
+    },
+    {
+        code: '588750', name: '科创芯片ETF汇添富', plan: '❌ 已止损清仓（9/11）：收 2.184 破 2.193 结构线，卖出 1000 份 @2.180，实亏约 65 元（-2.9%）',
+        triggers: [
+            { kind: 'info', price: null, label: '复盘：同 512760，左侧建仓被结构破坏扫出，两笔合计实亏约 146 元' },
+            { kind: 'info', price: null, label: '20cm 弹性标的左侧风险确认；后续只做右侧' },
+        ],
+    },
+    {
+        code: '588290', name: '科创半导体ETF华安', plan: '⚠️ 结构破坏暂停（9/11）：收 1.066 跌破 1.07 前低，双底结构失效，买点作废；重新等筑底',
+        triggers: [
+            { kind: 'info', price: null, label: '半导体梯队 9/11 全部离场/破位；该板块短期只观察不动手' },
+            { kind: 'buyDown', price: 1.13, label: '重新关注条件：重新筑底 + 收盘站回 MA10（右侧确认）' },
+        ],
+    },
+    {
+        code: '603993', name: '洛阳钼业', plan: '❌ 已止损清仓（9/14）：收破 18.0 假突破确认，卖出 100 股 @17.89，实亏 -107（-5.6%）；试仓代价可控',
+        triggers: [
+            { kind: 'info', price: null, label: '复盘：9/8 站稳 MA20 右侧买入逻辑成立，但 9/11 大盘急跌带破结构；铜钴逻辑不变，等重新站稳 18.9（MA20）再看' },
+        ],
+    },
+    {
+        code: '603501', name: '豪威集团(韦尔)', plan: '唯一保留的半导体个股观察位：车载 CIS 龙头，与德赛同产业链；一手约 8800 元，需用稀土释放资金',
+        triggers: [
+            { kind: 'info', price: null, label: '其余候选个股(北方华创/海光/澜起/中芯/兆易)一手 2.3万-6.4万，超账户体量已排除' },
+        ],
+    },
+];
+
+// ==================== 工具函数 ====================
+function fmtPrice(v) { return v ? (v / 100).toFixed(2) : '--'; }
+function fmtPct(v) { return v ? (v / 100).toFixed(2) + '%' : '--'; }
+function fmtAmt(v) {
+    if (!v) return '--';
+    if (v >= 1e12) return (v / 1e12).toFixed(2) + '万亿';
+    if (v >= 1e8) return (v / 1e8).toFixed(2) + '亿';
+    if (v >= 1e4) return (v / 1e4).toFixed(2) + '万';
+    return v.toFixed(0);
+}
+function fmtVol(v) { return v ? fmtAmt(v) + '手' : '--'; }
+function cls(v) { return v > 0 ? 'up' : v < 0 ? 'down' : 'flat'; }
+function pillCls(v) { return v > 0 ? 'pill-up' : v < 0 ? 'pill-down' : 'pill-flat'; }
+function fmtNum(v, d) { return v ? v.toFixed(d || 2) : '--'; }
+
+function showError(msg) {
+    document.getElementById('errorBox').innerHTML = msg ? `<div class="error">${msg}</div>` : '';
+}
+function setUpdateTime() {
+    const now = new Date();
+    document.getElementById('lastUpdate').textContent = '更新：' + now.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+function isTradeDay() { const d = new Date(); return d.getDay() >= 1 && d.getDay() <= 5; }
+
+// ==================== 数据获取 ====================
+async function fetchStock(secid) {
+    const url = `https://push2.eastmoney.com/api/qt/stock/get?secid=${secid}&fields=${FIELDS}&_=${Date.now()}`;
+    const res = await fetch(url, { cache: 'no-store' });
+    const data = await res.json();
+    if (data.rc !== 0 || !data.data) throw new Error('API返回异常');
+    return data.data;
+}
+
+async function fetchAll() {
+    const btn = document.getElementById('refreshBtn');
+    btn.disabled = true; btn.textContent = '⏳ 查询中...';
+    showError('');
+    try {
+        const allSecids = [...INDEX_LIST.map(i => i.secid), ...PORTFOLIO.map(s => s.secid), ...WATCHLIST.map(w => w.secid), ...CLOSED.map(c => c.secid)];
+        const promises = allSecids.map(sid => fetchStock(sid).catch(e => ({ _error: e.message, _secid: sid })));
+        const results = await Promise.all(promises);
+        const idx = INDEX_LIST.length;
+        const pLen = PORTFOLIO.length;
+        const wLen = WATCHLIST.length;
+        const indexResults = results.slice(0, idx);
+        const stockResults = results.slice(idx, idx + pLen);
+        const watchlistResults = results.slice(idx + pLen, idx + pLen + wLen);
+        const closedResults = results.slice(idx + pLen + wLen);
+        renderFund();
+        renderIndex(indexResults);
+        renderPortfolio(stockResults);
+        renderWatchlist(watchlistResults);
+        renderClosed(closedResults);
+        renderPlans(stockResults, watchlistResults, closedResults);
+        setUpdateTime();
+        localStorage.setItem('stockMonitorCache', JSON.stringify({ index: indexResults, stock: stockResults, watch: watchlistResults, closed: closedResults, time: Date.now() }));
+    } catch (e) {
+        showError('数据获取失败：' + e.message);
+        try {
+            const cache = JSON.parse(localStorage.getItem('stockMonitorCache') || '{}');
+            if (cache.index && cache.stock) {
+                renderFund();
+                renderIndex(cache.index);
+                renderPortfolio(cache.stock);
+                renderWatchlist(cache.watch || []);
+                renderClosed(cache.closed || []);
+                renderPlans(cache.stock, cache.watch || [], cache.closed || []);
+                document.getElementById('lastUpdate').textContent = '更新：' + new Date(cache.time).toLocaleString('zh-CN');
+                showError('数据获取失败，已显示缓存数据（' + new Date(cache.time).toLocaleString('zh-CN') + '）');
+            }
+        } catch (_) {}
+    } finally {
+        btn.disabled = false; btn.textContent = '🔄 立即查询';
+    }
+}
+
+// ==================== 渲染资金 ====================
+function renderFund() {
+    const stockPct = (FUND_DATA.stockValue / FUND_DATA.accountAssets * 100).toFixed(2);
+    const cards = [
+        { label: '银证转账总额', value: fmtNum(FUND_DATA.transferTotal), sub: '', cls: 'flat' },
+        { label: '账户资产', value: fmtNum(FUND_DATA.accountAssets), sub: '', cls: 'flat' },
+        { label: '股票市值', value: fmtNum(FUND_DATA.stockValue), sub: '占比 ' + stockPct + '%', cls: 'flat' },
+        { label: '剩余可用资金', value: fmtNum(FUND_DATA.availableCash), sub: '', cls: 'flat' },
+        { label: '参考盈亏', value: (FUND_DATA.refProfit >= 0 ? '+' : '') + fmtNum(FUND_DATA.refProfit), sub: '', cls: cls(FUND_DATA.refProfit) },
+    ];
+    document.getElementById('fundGrid').innerHTML = cards.map(c => `
+        <div class="fund-card">
+            <div class="fund-label">${c.label}</div>
+            <div class="fund-value ${c.cls}">${c.value}</div>
+            <div class="fund-sub">${c.sub}</div>
+        </div>
+    `).join('');
+}
+
+// ==================== 渲染指数 ====================
+function renderIndex(results) {
+    const html = results.map((d, i) => {
+        const info = INDEX_LIST[i];
+        if (d._error) {
+            return `<div class="index-card">
+                <div class="index-name">${info.name} <span style="color:#94a3b8">${info.code}.${info.suffix}</span></div>
+                <div class="index-price" style="color:#94a3b8">--</div>
+                <div class="index-change">获取失败</div>
+            </div>`;
+        }
+        const price = d.f43 / 100;
+        const change = (d.f43 - d.f60) / 100;
+        const pct = d.f170 / 100;
+        const amt = d.f48;
+        return `<div class="index-card">
+            <div class="index-name">${info.name} <span style="color:#94a3b8">${info.code}.${info.suffix}</span></div>
+            <div class="index-price ${cls(pct)}">${price.toFixed(2)}</div>
+            <div class="index-change ${cls(pct)}">${change >= 0 ? '+' : ''}${change.toFixed(2)} (${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%)</div>
+            <div class="index-volume">成交额：${fmtAmt(amt)}</div>
+        </div>`;
+    }).join('');
+    document.getElementById('indexGrid').innerHTML = html;
+}
+
+// ==================== 价格单位判断 ====================
+function isFund(code) {
+    return /^15|^16|^51|^56|^58/.test(code);
+}
+function getPriceUnit(code) {
+    return isFund(code) ? 1000 : 100;
+}
+
+// ==================== 渲染持仓 ====================
+function renderPortfolio(results) {
+    const html = results.map((d, i) => {
+        const info = PORTFOLIO[i];
+        if (d._error) {
+            return `<tr><td><div class="stock-name">${info.name}</div><div class="stock-code">${info.code}</div></td><td colspan="4" style="color:#94a3b8">获取失败</td></tr>`;
+        }
+        const profit = info.refProfit;
+        const profitPct = info.refProfitPct;
+        const tradeCount = TRADES.filter(t => t.code === info.code).length;
+        return `<tr>
+            <td>
+                <div class="stock-name">${info.name} <span style="color:#94a3b8;font-weight:normal">${info.code}</span></div>
+                <div style="font-size:14px;font-weight:600;margin-top:4px">${info.marketValue.toFixed(2)}</div>
+            </td>
+            <td>
+                <div class="${cls(profit)}">${profit >= 0 ? '+' : ''}${profit.toFixed(2)}</div>
+                <div class="${cls(profitPct)}" style="font-size:12px;margin-top:2px">${profitPct >= 0 ? '+' : ''}${profitPct.toFixed(2)}%</div>
+            </td>
+            <td>
+                <div>${info.qty}</div>
+                <div style="color:#94a3b8;font-size:12px;margin-top:2px">${info.avail}</div>
+            </td>
+            <td>
+                <div style="color:#64748b">${info.costPrice.toFixed(3)}</div>
+                <div class="price ${cls(profitPct)}" style="margin-top:2px">${info.curPrice.toFixed(3)}</div>
+            </td>
+            <td>
+                <button class="refresh-btn" style="padding:4px 12px; font-size:12px;" onclick="openTrades('${info.code}', '${info.name}')">📋 交易明细${tradeCount > 0 ? ' (' + tradeCount + ')' : ''}</button>
+            </td>
+        </tr>`;
+    }).join('');
+    document.getElementById('stockTable').innerHTML = html;
+}
+
+// ==================== 渲染观察池 ====================
+function renderWatchlist(results) {
+    const html = results.map((d, i) => {
+        const info = WATCHLIST[i];
+        if (d._error) {
+            return `<tr><td><div class="stock-name">${info.name}</div><div class="stock-code">${info.code}</div></td><td colspan="4" style="color:#94a3b8">获取失败</td></tr>`;
+        }
+        const unit = getPriceUnit(info.code);
+        const price = d.f43 / unit;
+        const change = (d.f43 - d.f60) / unit;
+        const pct = d.f170 / 100;
+        return `<tr>
+            <td><div class="stock-name">${info.name}</div><div class="stock-code">${info.code}</div></td>
+            <td class="price ${cls(pct)}">${price.toFixed(3)}</td>
+            <td class="${cls(pct)}">${change >= 0 ? '+' : ''}${change.toFixed(3)}</td>
+            <td><span class="change-pill ${pillCls(pct)}">${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%</span></td>
+            <td><button class="refresh-btn" style="padding:4px 12px; font-size:12px;" onclick="openChart('${info.name}', '${info.code}', '${info.secid}')">📈 详情</button></td>
+        </tr>`;
+    }).join('');
+    document.getElementById('watchlistTable').innerHTML = html;
+}
+
+// ==================== 渲染已清仓池 ====================
+function renderClosed(results) {
+    const html = results.map((d, i) => {
+        const info = CLOSED[i];
+        const tradeCount = TRADES.filter(t => t.code === info.code).length;
+        if (d._error) {
+            return `<tr>
+                <td><div class="stock-name">${info.name}</div><div class="stock-code">${info.code}</div></td>
+                <td style="color:#94a3b8">--</td>
+                <td style="color:#94a3b8">0 / 0</td>
+                <td style="color:#94a3b8">--</td>
+                <td><button class="refresh-btn" style="padding:4px 12px; font-size:12px;" onclick="openTrades('${info.code}', '${info.name}')">📋 交易明细${tradeCount > 0 ? ' (' + tradeCount + ')' : ''}</button></td>
+            </tr>`;
+        }
+        const unit = getPriceUnit(info.code);
+        const price = d.f43 / unit;
+        const change = (d.f43 - d.f60) / unit;
+        const pct = d.f170 / 100;
+        return `<tr>
+            <td>
+                <div class="stock-name">${info.name} <span style="color:#94a3b8;font-weight:normal">${info.code}</span></div>
+                <div style="font-size:14px;font-weight:600;margin-top:4px;color:#94a3b8">--</div>
+            </td>
+            <td><span style="color:#94a3b8">已清仓</span></td>
+            <td>
+                <div style="color:#94a3b8">0</div>
+                <div style="color:#94a3b8;font-size:12px;margin-top:2px">0</div>
+            </td>
+            <td>
+                <div style="color:#94a3b8">--</div>
+                <div class="price ${cls(pct)}" style="margin-top:2px">${price.toFixed(3)}</div>
+            </td>
+            <td>
+                <button class="refresh-btn" style="padding:4px 12px; font-size:12px;" onclick="openTrades('${info.code}', '${info.name}')">📋 交易明细${tradeCount > 0 ? ' (' + tradeCount + ')' : ''}</button>
+            </td>
+        </tr>`;
+    }).join('');
+    document.getElementById('closedTable').innerHTML = html;
+}
+
+// ==================== K线图弹窗 ====================
+function openChart(name, code, secid) {
+    const modal = document.getElementById('chartModal');
+    const title = document.getElementById('chartTitle');
+    const img = document.getElementById('chartImg');
+    const chartUrl = `https://webquoteklinepic.eastmoney.com/GetPic.aspx?nid=${secid}&imageType=k&token=28dfeb41d35cc81d84b4664d7c23c49f`;
+    title.textContent = `${name}（${code}）日K线图`;
+    img.src = chartUrl;
+    img.alt = `${name} K线图`;
+    modal.style.display = 'flex';
+}
+function closeChart() {
+    document.getElementById('chartModal').style.display = 'none';
+}
+
+// ==================== 交易明细弹窗 ====================
+function openTrades(code, name) {
+    const modal = document.getElementById('tradesModal');
+    const title = document.getElementById('tradesTitle');
+    const tbody = document.getElementById('tradesModalBody');
+    const stockTrades = TRADES.filter(t => t.code === code);
+    stockTrades.sort((a, b) => b.date.localeCompare(a.date));
+    if (stockTrades.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:24px">暂无交易记录</td></tr>`;
+    } else {
+        tbody.innerHTML = stockTrades.map(t => `
+            <tr>
+                <td>${t.date}</td>
+                <td><span class="trade-type ${t.type === '买入' ? 'trade-buy' : 'trade-sell'}">${t.type}</span></td>
+                <td>${t.price.toFixed(3)}</td>
+                <td>${t.qty}</td>
+                <td>${t.amount.toFixed(2)}</td>
+            </tr>
+        `).join('');
+    }
+    title.textContent = `${name}（${code}）交易明细`;
+    modal.style.display = 'flex';
+}
+function closeTrades() {
+    document.getElementById('tradesModal').style.display = 'none';
+}
+
+// 点击遮罩关闭弹窗
+window.onclick = function(e) {
+    const chartModal = document.getElementById('chartModal');
+    const tradesModal = document.getElementById('tradesModal');
+    if (e.target === chartModal) closeChart();
+    if (e.target === tradesModal) closeTrades();
+};
+
+// ==================== 渲染策略 ====================
+function renderStrategies() {
+    const html = STRATEGIES.map(s => `
+        <div class="strategy-card">
+            <div class="strategy-header">
+                <div><span class="strategy-title">${s.name}</span><span class="strategy-code">${s.code}</span></div>
+                <span class="strategy-tag">${s.status}</span>
+            </div>
+            <div class="strategy-row"><span class="strategy-label">策略类型</span><span class="strategy-value">${s.type}</span></div>
+            <div class="strategy-row"><span class="strategy-label">最新基准价</span><span class="strategy-price">${s.basePrice.toFixed(3)} 元</span></div>
+            <div class="strategy-row"><span class="strategy-label">买入触发</span><span class="strategy-value">基准价下跌 ${Math.abs(s.buyTrigger).toFixed(2)}% → <span class="strategy-price">${s.buyRef.toFixed(3)}</span></span></div>
+            <div class="strategy-row"><span class="strategy-label">卖出触发</span><span class="strategy-value">基准价上涨 ${s.sellTrigger.toFixed(2)}% → <span class="strategy-price">${s.sellRef.toFixed(3)}</span></span></div>
+            <div class="strategy-row"><span class="strategy-label">买入数量</span><span class="strategy-value">${s.buyQty} 份（即时卖二价）</span></div>
+            <div class="strategy-row"><span class="strategy-label">卖出数量</span><span class="strategy-value">${s.sellQty} 份（即时买二价）</span></div>
+            <div class="strategy-row"><span class="strategy-label">有效期至</span><span class="strategy-value">${s.expiry}</span></div>
+        </div>
+    `).join('');
+    document.getElementById('strategyGrid').innerHTML = html;
+}
+
+// ==================== 渲染作战计划预警 ====================
+function renderPlans(stockResults, watchlistResults, closedResults) {
+    const priceMap = {};
+    (stockResults || []).forEach((d, i) => {
+        if (!d._error) priceMap[PORTFOLIO[i].code] = d.f43 / getPriceUnit(PORTFOLIO[i].code);
+    });
+    (watchlistResults || []).forEach((d, i) => {
+        if (!d._error) priceMap[WATCHLIST[i].code] = d.f43 / getPriceUnit(WATCHLIST[i].code);
+    });
+    (closedResults || []).forEach((d, i) => {
+        if (!d._error) priceMap[CLOSED[i].code] = d.f43 / getPriceUnit(CLOSED[i].code);
+    });
+    const html = PLAN_CARDS.map(p => {
+        const cur = priceMap[p.code];
+        const rows = p.triggers.map(t => {
+            if (t.kind === 'info' || cur == null) {
+                return `<div class="strategy-row"><span class="strategy-label">${t.kind === 'info' ? '提示' : '触发'}</span><span class="strategy-value">${t.label}</span></div>`;
+            }
+            const diffPct = ((t.price - cur) / cur * 100);
+            let tag, tagCls;
+            if (t.kind === 'sellUp') {
+                tag = diffPct <= 0 ? '已到价!' : '距触发 +' + diffPct.toFixed(1) + '%';
+                tagCls = diffPct <= 2 ? 'up' : 'flat';
+            } else if (t.kind === 'sellDown') {
+                tag = diffPct >= 0 ? '已破位!' : '缓冲 ' + (-diffPct).toFixed(1) + '%';
+                tagCls = diffPct >= -2 ? 'down' : 'flat';
+            } else {
+                tag = diffPct >= 0 ? '已到买点区!' : '距买点 ' + (-diffPct).toFixed(1) + '%';
+                tagCls = diffPct >= -2 ? 'up' : 'flat';
+            }
+            return `<div class="strategy-row"><span class="strategy-label">${t.label}</span><span class="strategy-value ${tagCls}" style="font-weight:600">${tag}</span></div>`;
+        }).join('');
+        const curLine = cur != null
+            ? `<div class="strategy-row"><span class="strategy-label">最新价</span><span class="strategy-price">${cur.toFixed(3)}</span></div>`
+            : '';
+        return `<div class="strategy-card">
+            <div class="strategy-header">
+                <div><span class="strategy-title">${p.name}</span><span class="strategy-code">${p.code}</span></div>
+                <span class="strategy-tag">计划中</span>
+            </div>
+            <div class="strategy-row"><span class="strategy-label">计划</span><span class="strategy-value" style="text-align:right;max-width:65%">${p.plan}</span></div>
+            ${curLine}
+            ${rows}
+        </div>`;
+    }).join('');
+    document.getElementById('planGrid').innerHTML = html;
+}
+
+// ==================== 自动刷新 ====================
+let autoRefreshedToday = { am: false, pm: false };
+function checkAutoRefresh() {
+    const d = new Date();
+    const h = d.getHours(), m = d.getMinutes();
+    const dateKey = d.toISOString().slice(0, 10);
+    const record = JSON.parse(localStorage.getItem('autoRefreshRecord') || '{}');
+    if (record.date !== dateKey) { record.date = dateKey; record.am = false; record.pm = false; }
+    const isAM = h === 9 && m >= 45 && m < 46 && !record.am;
+    const isPM = h === 13 && m >= 30 && m < 31 && !record.pm;
+    if (isTradeDay() && (isAM || isPM)) {
+        if (isAM) record.am = true; if (isPM) record.pm = true;
+        localStorage.setItem('autoRefreshRecord', JSON.stringify(record));
+        fetchAll();
+    }
+}
+function manualRefresh() { fetchAll(); }
+
+// ==================== 初始化 ====================
+(function init() {
+    renderStrategies();
+    try {
+        const cache = JSON.parse(localStorage.getItem('stockMonitorCache') || '{}');
+        if (cache.index && cache.stock && Date.now() - cache.time < 300000) {
+            renderFund();
+            renderIndex(cache.index);
+            renderPortfolio(cache.stock);
+            renderWatchlist(cache.watch || []);
+            renderClosed(cache.closed || []);
+            renderPlans(cache.stock, cache.watch || [], cache.closed || []);
+            document.getElementById('lastUpdate').textContent = '更新：' + new Date(cache.time).toLocaleString('zh-CN');
+        }
+    } catch (_) {}
+    fetchAll();
+    setInterval(checkAutoRefresh, 60000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) checkAutoRefresh(); });
+})();
+</script>
+</body>
+</html>

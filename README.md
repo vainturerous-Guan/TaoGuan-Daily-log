@@ -9,7 +9,8 @@
 | `index.html` | 首页，五个频道入口 |
 | `daily.html` | 生活日常记录（已完整实现） |
 | `knowledge.html` | 知识点积累（已可用） |
-| `parenting.html` / `reading.html` / `stocks.html` | 占位页，内容建设中 |
+| `parenting.html` / `reading.html` | 占位页，内容建设中 |
+| `stocks.html` | 股票监控与分析（股票监控 + 交易体系学习） |
 
 ## 数据存储（双模式）
 
@@ -61,10 +62,25 @@
 数据文件 `data/knowledge.json`（本地模式 key：`taoguan_records_data_knowledge_json`），JSON 数组，每条：
 
 ```json
-{ "id": "...", "date": "YYYY-MM-DD", "source": "知识来源（可空）", "point": "知识点", "insight": "心得感悟（可空）", "createdAt": "...", "updatedAt": "..." }
+{ "id": "...", "date": "YYYY-MM-DD", "source": "知识来源（可空）", "point": "知识点", "insight": "心得感悟（可空）", "attachments": [{ "name": "原文件名", "type": "MIME", "size": 12345, "path": "data/attachments/<记录id>-<序号>-<文件名>" }], "createdAt": "...", "updatedAt": "..." }
 ```
 
 同一天允许多条记录，各自独立；列表按日期倒序、同日期按 createdAt 倒序；读取时自动过滤缺 `id` 的坏条目。
+
+**附件**：表单中可点击上传或粘贴图片，一条知识点可挂多个附件。附件优先写入本机项目文件夹（通过 File System Access API 选择一次项目文件夹，句柄存浏览器 IndexedDB，后续自动复用；页面需经本地服务器访问，如 `python3 -m http.server`）。未选择文件夹或不支持该 API 时，附件以 base64 内嵌进记录本身。历史记录中图片可点击放大预览，其他附件可点击下载。注意：附件只保存在本机，不会随 GitHub 模式同步到仓库。
+
+### 股票监控与分析（stocks.html）
+
+页面左侧为抽屉式页签（桌面端常驻侧栏、移动端 ☰ 滑出）：
+
+- **股票监控**：内嵌 `stock-monitor.html`（独立页面，原样引入、未做修改），数据与交互逻辑均在其页面内自给。
+- **交易体系学习**：表单含日期（默认当天、显示星期）、名称、知识点；保存后进入历史记录，按日期倒序、同日期按创建时间倒序展示（含 HH:mm）。
+
+数据文件 `data/stock-learning.json`（本地模式 key：`taoguan_records_data_stock_learning_json`），JSON 数组，每条：
+
+```json
+{ "id": "...", "date": "YYYY-MM-DD", "name": "名称", "point": "知识点", "createdAt": "...", "updatedAt": "..." }
+```
 
 > 安全说明：令牌只存在你自己浏览器的 localStorage 里，不会进入仓库代码。请勿在公共电脑上保存令牌；若怀疑令牌泄漏，立即在 GitHub 上吊销并重新生成。
 
@@ -81,7 +97,7 @@ python3 -m http.server 8000
 ## 文件结构
 
 ```
-index.html  daily.html  parenting.html  knowledge.html  reading.html  stocks.html
+index.html  daily.html  parenting.html  knowledge.html  reading.html  stocks.html  stock-monitor.html
 css/style.css
-js/config.js  js/storage.js  js/common.js  js/daily.js  js/knowledge.js
+js/config.js  js/storage.js  js/common.js  js/daily.js  js/knowledge.js  js/stocks.js
 ```

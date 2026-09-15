@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>股票监控与分析 · 陶关每日记录</title>
-  <meta name="description" content="自选股跟踪、复盘与市场观察。">
+  <meta name="description" content="自选股监控、交易体系学习与复盘。">
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="css/style.css?v=20260911">
+  <link rel="stylesheet" href="css/style.css?v=20260915">
 </head>
 <body>
   <header class="site-header">
@@ -23,19 +23,68 @@
     </nav>
   </header>
 
-  <main>
-    <h1 class="page-title">📈 股票监控与分析</h1>
-    <section class="card placeholder-card">
-      <p class="placeholder-desc">自选股的日常跟踪、交易复盘与市场观察笔记。</p>
-      <p class="placeholder-note">🚧 内容建设中，敬请期待～</p>
-    </section>
+  <main class="stocks-main">
+    <div class="stocks-layout">
+      <button class="drawer-toggle" id="drawer-toggle" aria-label="展开页签" aria-expanded="false">☰ 页签</button>
+      <div class="drawer-overlay" id="drawer-overlay" hidden></div>
+
+      <aside class="stocks-drawer" id="stocks-drawer" aria-label="股票频道页签">
+        <nav class="drawer-nav">
+          <button type="button" class="drawer-tab" data-tab="monitor">📊 股票监控</button>
+          <button type="button" class="drawer-tab" data-tab="learning">📚 交易体系学习</button>
+        </nav>
+      </aside>
+
+      <div class="stocks-content">
+        <section class="tab-panel" id="panel-monitor" aria-label="股票监控">
+          <iframe class="monitor-frame" src="stock-monitor.html" title="A股行情监控台"></iframe>
+        </section>
+
+        <section class="tab-panel" id="panel-learning" aria-label="交易体系学习" hidden>
+          <section class="card form-card" aria-labelledby="learning-form-title">
+            <h2 id="learning-form-title" class="card-title">记录交易体系学习</h2>
+            <form id="learning-form" novalidate>
+              <div class="form-row date-row">
+                <div class="form-field date-field">
+                  <label for="learning-date">日期</label>
+                  <input type="date" id="learning-date" required>
+                  <span class="weekday" id="learning-weekday"></span>
+                </div>
+                <div class="form-field">
+                  <label for="learning-name">名称</label>
+                  <input type="text" id="learning-name" placeholder="如：网格交易、止损纪律、仓位管理…" maxlength="100">
+                </div>
+              </div>
+
+              <div class="form-field">
+                <label for="learning-point">知识点</label>
+                <textarea id="learning-point" rows="4" placeholder="今天学到的交易体系知识点，记下来～"></textarea>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary" id="learning-submit">保存记录</button>
+              </div>
+            </form>
+          </section>
+
+          <section aria-labelledby="learning-history-title">
+            <h2 id="learning-history-title" class="card-title history-title">历史记录</h2>
+            <p id="learning-loading" class="loading-hint">加载中…</p>
+            <div id="learning-list" class="record-list"></div>
+            <p class="empty-hint" id="learning-empty" hidden>还没有学习记录，从今天的开始吧～</p>
+          </section>
+        </section>
+      </div>
+    </div>
   </main>
 
   <footer class="site-footer">
     <p>© <span class="current-year">2026</span> 陶关每日记录 · 用心记录每一天</p>
   </footer>
 
-  <script src="js/config.js?v=20260911"></script>
-  <script src="js/common.js?v=20260911"></script>
+  <script src="js/config.js?v=20260914"></script>
+  <script src="js/common.js?v=20260914"></script>
+  <script src="js/storage.js?v=20260914"></script>
+  <script src="js/stocks.js?v=20260915"></script>
 </body>
 </html>
