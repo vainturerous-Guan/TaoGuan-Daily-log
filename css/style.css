@@ -1213,7 +1213,11 @@ body.modal-open {
 /* ===== 股票频道：左侧抽屉页签 ===== */
 
 .stocks-main {
-  max-width: 1280px;
+  max-width: none;
+}
+
+#panel-learning {
+  max-width: 860px;
 }
 
 .stocks-layout {
@@ -1307,6 +1311,7 @@ body.modal-open {
 }
 
 .stocks-content {
+  flex: 1;
   min-width: 0;
 }
 
