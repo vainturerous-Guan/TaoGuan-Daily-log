@@ -6,7 +6,7 @@
 
 | 页面 | 说明 |
 | --- | --- |
-| `index.html` | 首页，五个频道入口 |
+| `index.html` | 首页，四个频道入口（亲子手记频道暂不启用，已隐藏） |
 | `daily.html` | 生活日常记录（已完整实现） |
 | `knowledge.html` | 知识点积累（已可用） |
 | `parenting.html` / `reading.html` | 占位页，内容建设中 |
