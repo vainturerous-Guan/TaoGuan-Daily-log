@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>目标打卡 · Stay Real and fun</title>
+  <meta name="description" content="每日工作与生活打卡，长期计划分阶段推进。">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="css/style.css?v=20260916">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="site-nav">
+      <a class="site-name" href="index.html">Stay Real and fun</a>
+      <button class="nav-toggle" aria-label="展开导航" aria-expanded="false">☰</button>
+      <ul class="nav-links">
+        <li><a href="daily.html">生活日常记录</a></li>
+        <li><a href="goals.html" aria-current="page">目标打卡</a></li>
+        <li><a href="stocks.html">股票监控与分析</a></li>
+        <li><a href="knowledge.html">知识点积累</a></li>
+        <li><a href="reading.html">读书笔记</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <h1 class="page-title">目标打卡</h1>
+
+    <section class="card form-card" aria-labelledby="today-title">
+      <div class="today-head">
+        <h2 id="today-title" class="card-title">每日打卡</h2>
+        <div class="today-date">
+          <input type="date" id="checkin-date">
+          <span class="weekday" id="checkin-weekday"></span>
+          <span class="badge-today" id="today-badge">今天</span>
+        </div>
+      </div>
+
+      <fieldset class="form-field checkin-group">
+        <legend>工作</legend>
+        <div class="focus-row">
+          <span class="focus-label">高效时间</span>
+          <div class="input-with-unit">
+            <input type="number" id="focus-hours" step="0.5" min="0" max="24" placeholder="0">
+            <span class="unit-label">小时</span>
+          </div>
+          <span class="focus-goal">目标 ≥ 3 小时</span>
+          <span class="focus-state" id="focus-state" hidden>✓ 达标</span>
+        </div>
+        <div class="sub-head">今日事项</div>
+        <ul id="work-tasks" class="check-list"></ul>
+        <form id="work-task-form" class="inline-add-form">
+          <input type="text" id="work-task-input" placeholder="添加今日工作事项，回车保存" maxlength="50">
+          <button type="submit" class="btn btn-small">添加</button>
+        </form>
+      </fieldset>
+
+      <fieldset class="form-field checkin-group">
+        <legend>生活</legend>
+        <ul id="habit-list" class="check-list"></ul>
+        <form id="habit-form" class="inline-add-form">
+          <input type="text" id="habit-input" placeholder="新习惯，如：练琴" maxlength="20">
+          <button type="submit" class="btn btn-small">添加</button>
+        </form>
+        <details class="archived-box" id="archived-box" hidden>
+          <summary>已归档习惯</summary>
+          <ul id="archived-list" class="check-list"></ul>
+        </details>
+      </fieldset>
+
+      <p class="today-summary" id="today-summary"></p>
+    </section>
+
+    <section aria-labelledby="long-title">
+      <div class="section-head">
+        <h2 id="long-title" class="card-title history-title">长期计划</h2>
+        <button type="button" class="btn btn-small" id="add-plan-btn">＋ 新建计划</button>
+      </div>
+      <div id="plan-list" class="record-list"></div>
+      <p class="empty-hint" id="plan-empty" hidden>还没有长期计划，点上方「＋ 新建计划」开始吧～</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>© <span class="current-year">2026</span> Stay Real and fun · 用心记录每一天</p>
+  </footer>
+
+  <script src="js/config.js?v=20260914"></script>
+  <script src="js/common.js?v=20260914"></script>
+  <script src="js/storage.js?v=20260914"></script>
+  <script src="js/goals.js?v=20260916"></script>
+</body>
+</html>
