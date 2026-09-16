@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "date": "2026-09-16",
+    "focusHours": null,
+    "workTasks": [
+      {
+        "id": "mu3p8ysb0kkr2p",
+        "name": "完成零售观察报告邮件",
+        "done": false
+      }
+    ],
+    "habits": {},
+    "createdAt": 1789538887451,
+    "updatedAt": 1789538887451
+  }
+]
