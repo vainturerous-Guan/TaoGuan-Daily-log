@@ -136,6 +136,12 @@ tr:hover td { background: #f8fafc; }
     align-items: center; gap: 6px;
 }
 
+/* ===== 交易明细弹窗（按买入轮次分组） ===== */
+.trades-table td { vertical-align: middle; }
+.trades-table .round-start td { border-top: 2px solid #94a3b8; }
+.trades-table .seq-cell { text-align: center; font-weight: 600; color: #1e293b; }
+.trades-table .pl-cell { text-align: center; font-weight: 600; white-space: nowrap; }
+
 @media (max-width: 640px) {
     .index-grid { grid-template-columns: repeat(2, 1fr); }
     .fund-grid { grid-template-columns: repeat(2, 1fr); }
@@ -244,14 +250,16 @@ tr:hover td { background: #f8fafc; }
             <button onclick="closeTrades()" style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:24px; cursor:pointer; color:#64748b;">×</button>
             <h3 id="tradesTitle" style="margin-bottom:16px; font-size:18px;"></h3>
             <div class="table-wrap" style="margin-bottom:12px;">
-                <table>
+                <table class="trades-table">
                     <thead>
                         <tr>
+                            <th>序号</th>
                             <th>交收日期</th>
                             <th>业务</th>
                             <th>成交价格</th>
                             <th>成交数量</th>
                             <th>成交金额</th>
+                            <th>总盈亏</th>
                         </tr>
                     </thead>
                     <tbody id="tradesModalBody"></tbody>
@@ -726,26 +734,69 @@ function closeChart() {
     document.getElementById('chartModal').style.display = 'none';
 }
 
-// ==================== 交易明细弹窗 ====================
+// ==================== 交易明细弹窗（按买入轮次 FIFO 展示） ====================
 function openTrades(code, name) {
     const modal = document.getElementById('tradesModal');
     const title = document.getElementById('tradesTitle');
     const tbody = document.getElementById('tradesModalBody');
     const stockTrades = TRADES.filter(t => t.code === code);
-    stockTrades.sort((a, b) => b.date.localeCompare(a.date));
-    if (stockTrades.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:24px">暂无交易记录</td></tr>`;
-    } else {
-        tbody.innerHTML = stockTrades.map(t => `
-            <tr>
+    // 买入按日期先后编轮次序号；卖出按先买先卖挂到对应轮次，份额超出时剩余顺延下一笔
+    const buys = stockTrades.filter(t => t.type === '买入').sort((a, b) => a.date.localeCompare(b.date));
+    const sells = stockTrades.filter(t => t.type !== '买入').sort((a, b) => a.date.localeCompare(b.date));
+    const lots = buys.map((b, i) => ({ seq: i + 1, buy: b, remaining: b.qty, sells: [], matchedQty: 0, sellAmount: 0 }));
+    const orphan = [];
+    sells.forEach(s => {
+        let left = s.qty;
+        for (const lot of lots) {
+            if (left <= 0) break;
+            if (lot.buy.date > s.date) continue; // 卖出只匹配不晚于它的买入
+            const take = Math.min(left, lot.remaining);
+            if (take > 0) {
+                lot.sells.push({ date: s.date, price: s.price, qty: take, amount: s.price * take });
+                lot.remaining -= take;
+                lot.matchedQty += take;
+                lot.sellAmount += s.price * take;
+                left -= take;
+            }
+        }
+        if (left > 0) orphan.push({ date: s.date, price: s.price, qty: left, amount: s.price * left });
+    });
+    const fmtSigned = v => (v >= 0 ? '+' : '') + v.toFixed(2);
+    const sellRow = t => `<tr>
                 <td>${t.date}</td>
-                <td><span class="trade-type ${t.type === '买入' ? 'trade-buy' : 'trade-sell'}">${t.type}</span></td>
+                <td><span class="trade-type trade-sell">卖出</span></td>
                 <td>${t.price.toFixed(3)}</td>
                 <td>${t.qty}</td>
                 <td>${t.amount.toFixed(2)}</td>
-            </tr>
-        `).join('');
+            </tr>`;
+    const rows = [];
+    lots.slice().reverse().forEach(lot => { // 按买入序号倒序展示
+        const pl = lot.matchedQty > 0 ? lot.sellAmount - lot.buy.price * lot.matchedQty : null;
+        const span = 1 + lot.sells.length;
+        const plHtml = pl === null ? '<span style="color:#cbd5e1">--</span>'
+            : `<span class="${cls(pl)}">${fmtSigned(pl)}</span>`;
+        rows.push(`<tr class="round-start">
+                <td class="seq-cell" rowspan="${span}">${lot.seq}</td>
+                <td>${lot.buy.date}</td>
+                <td><span class="trade-type trade-buy">买入</span></td>
+                <td>${lot.buy.price.toFixed(3)}</td>
+                <td>${lot.buy.qty}</td>
+                <td>${lot.buy.amount.toFixed(2)}</td>
+                <td class="pl-cell" rowspan="${span}">${plHtml}</td>
+            </tr>`);
+        lot.sells.forEach(s => rows.push(sellRow(s)));
+    });
+    if (orphan.length) {
+        rows.push(`<tr class="round-start">
+                <td class="seq-cell" rowspan="${orphan.length}">—</td>
+                <td colspan="5" style="color:#94a3b8;font-size:12px">以下卖出早于最早买入记录，未能匹配买入轮次</td>
+                <td class="pl-cell" rowspan="${orphan.length}"><span style="color:#cbd5e1">--</span></td>
+            </tr>`);
+        orphan.forEach(s => rows.push(sellRow(s)));
     }
+    tbody.innerHTML = rows.length
+        ? rows.join('')
+        : '<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:24px">暂无交易记录</td></tr>';
     title.textContent = `${name}（${code}）交易明细`;
     modal.style.display = 'flex';
 }

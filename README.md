@@ -1,4 +1,4 @@
-# 陶关每日记录
+# Stay Real and fun
 
 纯静态个人记录网站（HTML + CSS + 原生 JavaScript，无框架、无构建工具、无外部 CDN 依赖），部署到 GitHub Pages（仓库 `vainturerous-Guan/TaoGuan-Daily-log`，分支 `main`）。
 
