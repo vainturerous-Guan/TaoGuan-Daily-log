@@ -14,9 +14,12 @@
         "done": false
       }
     ],
-    "habits": {},
+    "habits": {
+      "mu3p9fdja2pqnw": true,
+      "mu3p9vh67iz7rq": true
+    },
     "createdAt": 1789538887451,
-    "updatedAt": 1789538896335
+    "updatedAt": 1789617509991
   },
   {
     "date": "2026-09-17",
