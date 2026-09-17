@@ -14,6 +14,9 @@
   let saving = false;
   let unit = loadUnit();
   let modal = null; // { overlay, form, fields, recordId }
+  let historyPage = 1;
+  const PAGE_SIZE = 10; // 全部历史记录每页条数
+  const RECENT_DAYS = 5; // 近N日记录
 
   const els = {};
 
@@ -238,6 +241,7 @@
     saveUnit();
     updateUnitLabels();
     renderList();
+    renderHistory();
   }
 
   /* ---------- 顶部表单逻辑 ---------- */
@@ -334,6 +338,7 @@
       Common.toast("已保存");
       resetForm();
       renderList();
+      renderHistory();
     } catch (err) {
       console.error("保存失败", err);
       Common.toast(friendlyError(err, "保存"), "error");
@@ -375,10 +380,10 @@
     return Common.escapeHtml(s).replace(/"/g, "&quot;");
   }
 
-  function clampCell(html, fullText) {
+  function clampCell(html, fullText, clampCls) {
     if (!fullText || !fullText.trim()) return '<span class="cell-empty">—</span>';
     return (
-      '<div class="clamp3" title="' + escapeAttr(fullText) + '">' + html + "</div>"
+      '<div class="' + (clampCls || "clamp3") + '" title="' + escapeAttr(fullText) + '">' + html + "</div>"
     );
   }
 
@@ -397,17 +402,17 @@
       .join("");
   }
 
-  function cellSleepHtml(rec) {
+  function cellSleepHtml(rec, clampCls) {
     const lines = [];
     if (rec.sleep.bedTime) lines.push("昨晚" + rec.sleep.bedTime + "睡");
     if (rec.sleep.wakeTime) lines.push("今早" + rec.sleep.wakeTime + "起");
     const html = lines
       .map((l) => '<div class="cell-line">' + Common.escapeHtml(l) + "</div>")
       .join("");
-    return clampCell(html, lines.join("\n"));
+    return clampCell(html, lines.join("\n"), clampCls);
   }
 
-  function cellWeightHtml(rec) {
+  function cellWeightHtml(rec, clampCls) {
     const label = UNIT_LABEL[unit];
     const lines = [];
     if (rec.weight.night != null) lines.push("睡前 " + kgToDisplay(rec.weight.night) + label);
@@ -415,21 +420,22 @@
     const html = lines
       .map((l) => '<div class="cell-line">' + Common.escapeHtml(l) + "</div>")
       .join("");
-    return clampCell(html, lines.join("\n"));
+    return clampCell(html, lines.join("\n"), clampCls);
   }
 
-  function cellDietHtml(rec) {
+  function cellDietHtml(rec, clampCls) {
     const full = [rec.diet.snacks, rec.diet.meals].filter((s) => s && s.trim()).join("\n");
     return clampCell(
       labeledLines([
         { label: "零食·饮料 ", text: rec.diet.snacks },
         { label: "正餐 ", text: rec.diet.meals },
       ]),
-      full
+      full,
+      clampCls
     );
   }
 
-  function cellParentingHtml(rec) {
+  function cellParentingHtml(rec, clampCls) {
     const full = [rec.parenting.life, rec.parenting.lifeMindful, rec.parenting.mindful, rec.parenting.reflection]
       .filter((s) => s && s.trim())
       .join("\n");
@@ -440,11 +446,13 @@
         { label: "育儿正念 ", text: rec.parenting.mindful },
         { label: "反思 ", text: rec.parenting.reflection },
       ]),
-      full
+      full,
+      clampCls
     );
   }
 
-  function rowHtml(rec, isToday) {
+  function rowHtml(rec, isToday, wide) {
+    const clampCls = wide ? "clamp6" : "clamp3";
     const dateHtml =
       '<div class="cell-date">' +
       Common.escapeHtml(rec.date) +
@@ -457,44 +465,30 @@
         : "");
 
     const todayHtml = rec.todayRecord
-      ? '<div class="clamp3" title="' + escapeAttr(rec.todayRecord) + '">' +
+      ? '<div class="' + clampCls + '" title="' + escapeAttr(rec.todayRecord) + '">' +
         Common.escapeHtml(rec.todayRecord) + "</div>"
       : '<span class="cell-empty">—</span>';
     const workHtml = rec.work
-      ? '<div class="clamp3" title="' + escapeAttr(rec.work) + '">' +
+      ? '<div class="' + clampCls + '" title="' + escapeAttr(rec.work) + '">' +
         Common.escapeHtml(rec.work) + "</div>"
       : '<span class="cell-empty">—</span>';
 
     return (
       '<tr data-id="' + escapeAttr(rec.id) + '">' +
       '<td class="col-date">' + dateHtml + "</td>" +
-      '<td class="col-sleep">' + cellSleepHtml(rec) + "</td>" +
-      '<td class="col-weight">' + cellWeightHtml(rec) + "</td>" +
-      '<td class="col-diet">' + cellDietHtml(rec) + "</td>" +
+      '<td class="col-sleep">' + cellSleepHtml(rec, clampCls) + "</td>" +
+      '<td class="col-weight">' + cellWeightHtml(rec, clampCls) + "</td>" +
+      '<td class="col-diet">' + cellDietHtml(rec, clampCls) + "</td>" +
       '<td class="col-today">' + todayHtml + "</td>" +
       '<td class="col-work">' + workHtml + "</td>" +
-      '<td class="col-parenting">' + cellParentingHtml(rec) + "</td>" +
+      '<td class="col-parenting">' + cellParentingHtml(rec, clampCls) + "</td>" +
       '<td class="col-actions"><button type="button" class="btn btn-small" data-action="edit">编辑</button></td>' +
       "</tr>"
     );
   }
 
-  function renderList() {
-    sortRecords();
-    els.list.querySelectorAll(".table-wrap").forEach((n) => n.remove());
-
-    if (!records.length) {
-      els.emptyHint.hidden = false;
-      return;
-    }
-    els.emptyHint.hidden = true;
-
-    const today = Common.todayStr();
-    const rows = records.map((rec) => rowHtml(rec, rec.date === today)).join("");
-
-    const wrap = document.createElement("div");
-    wrap.className = "table-wrap card";
-    wrap.innerHTML =
+  function buildTableHtml(rowsHtml) {
+    return (
       '<table class="records-table">' +
       "<colgroup>" +
       '<col class="col-date"><col class="col-sleep"><col class="col-weight"><col class="col-diet">' +
@@ -504,9 +498,80 @@
       "<th>日期</th><th>睡眠</th><th>体重</th><th>饮食</th>" +
       "<th>今日记录</th><th>工作</th><th>生活流水账</th><th>操作</th>" +
       "</tr></thead>" +
-      "<tbody>" + rows + "</tbody>" +
-      "</table>";
+      "<tbody>" + rowsHtml + "</tbody>" +
+      "</table>"
+    );
+  }
+
+  // 近N个自然日的起始日期（含今天），如 2026-09-13
+  function recentCutoff(n) {
+    const d = new Date(Common.todayStr() + "T00:00:00");
+    d.setDate(d.getDate() - (n - 1));
+    return (
+      d.getFullYear() +
+      "-" + String(d.getMonth() + 1).padStart(2, "0") +
+      "-" + String(d.getDate()).padStart(2, "0")
+    );
+  }
+
+  function renderList() {
+    sortRecords();
+    els.list.querySelectorAll(".table-wrap").forEach((n) => n.remove());
+
+    const cutoff = recentCutoff(RECENT_DAYS);
+    const recent = records.filter((r) => r.date >= cutoff);
+    if (!recent.length) {
+      els.emptyHint.hidden = false;
+      return;
+    }
+    els.emptyHint.hidden = true;
+
+    const today = Common.todayStr();
+    const wrap = document.createElement("div");
+    wrap.className = "table-wrap card";
+    wrap.innerHTML = buildTableHtml(recent.map((rec) => rowHtml(rec, rec.date === today, false)).join(""));
     els.list.appendChild(wrap);
+  }
+
+  // 全部历史记录：与股票监控台同宽，10条/页翻页
+  function renderHistory() {
+    sortRecords();
+    els.historyList.querySelectorAll(".table-wrap").forEach((n) => n.remove());
+
+    if (!records.length) {
+      els.historyEmpty.hidden = false;
+      els.historyPager.hidden = true;
+      return;
+    }
+    els.historyEmpty.hidden = true;
+
+    const pageCount = Math.max(1, Math.ceil(records.length / PAGE_SIZE));
+    if (historyPage > pageCount) historyPage = pageCount;
+    const start = (historyPage - 1) * PAGE_SIZE;
+    const pageRows = records.slice(start, start + PAGE_SIZE);
+
+    const today = Common.todayStr();
+    const wrap = document.createElement("div");
+    wrap.className = "table-wrap card";
+    wrap.innerHTML = buildTableHtml(pageRows.map((rec) => rowHtml(rec, rec.date === today, true)).join(""));
+    els.historyList.appendChild(wrap);
+
+    els.historyPager.hidden = pageCount <= 1;
+    els.pageInfo.textContent =
+      "第 " + historyPage + " / " + pageCount + " 页 · 共 " + records.length + " 条";
+  }
+
+  /* ---------- 页签 ---------- */
+
+  function activateTab(name) {
+    els.tabs.forEach((tab) => {
+      if (tab.dataset.tab === name) tab.setAttribute("aria-current", "true");
+      else tab.removeAttribute("aria-current");
+    });
+    els.panels.today.hidden = name !== "today";
+    els.panels.history.hidden = name !== "history";
+    els.main.classList.toggle("main-wide", name === "history");
+    if (name === "history") renderHistory();
   }
 
   /* ---------- 编辑模态框 ---------- */
@@ -612,6 +677,7 @@
       Common.toast("已保存");
       closeModal();
       renderList();
+      renderHistory();
     } catch (err) {
       console.error("保存失败", err);
       Common.toast(friendlyError(err, "保存"), "error");
@@ -640,6 +706,9 @@
   /* ---------- 初始化 ---------- */
 
   function cacheEls() {
+    els.main = $("#main");
+    els.tabs = Array.from(document.querySelectorAll(".page-tab"));
+    els.panels = { today: $("#panel-today"), history: $("#panel-history") };
     els.form = $("#daily-form");
     els.fields = getFields(els.form);
     els.submitBtn = $("#submit-btn");
@@ -647,6 +716,10 @@
     els.formTitle = $("#form-title");
     els.list = $("#record-list");
     els.emptyHint = $("#empty-hint");
+    els.historyList = $("#history-list");
+    els.historyEmpty = $("#history-empty");
+    els.historyPager = $("#history-pager");
+    els.pageInfo = $("#page-info");
   }
 
   async function init() {
@@ -659,6 +732,15 @@
     els.form.addEventListener("submit", handleSubmit);
     els.fields.date.addEventListener("change", handleDateChange);
     els.list.addEventListener("click", handleListClick);
+    els.historyList.addEventListener("click", handleListClick);
+    els.tabs.forEach((tab) => tab.addEventListener("click", () => activateTab(tab.dataset.tab)));
+    els.historyPager.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-page]");
+      if (!btn) return;
+      if (btn.dataset.page === "prev" && historyPage > 1) historyPage -= 1;
+      if (btn.dataset.page === "next") historyPage += 1;
+      renderHistory();
+    });
     els.cancelEditBtn.addEventListener("click", () => {
       resetForm();
       renderList();

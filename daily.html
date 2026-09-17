@@ -6,7 +6,7 @@
   <title>生活日常记录 · Stay Real and fun</title>
   <meta name="description" content="今日一句话总结、睡眠饮食、体重与每日记录。">
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="css/style.css?v=20260916">
+  <link rel="stylesheet" href="css/style.css?v=20260917">
 </head>
 <body>
   <header class="site-header">
@@ -23,8 +23,15 @@
     </nav>
   </header>
 
-  <main>
+  <main id="main">
     <h1 class="page-title">生活日常记录</h1>
+
+    <div class="page-tabs" role="tablist" aria-label="生活日常记录页签">
+      <button type="button" class="page-tab" data-tab="today" aria-current="true">✏️ 今日记录</button>
+      <button type="button" class="page-tab" data-tab="history">📚 全部历史记录</button>
+    </div>
+
+    <section class="tab-panel" id="panel-today" aria-label="今日记录">
 
     <section class="card form-card" aria-labelledby="form-title">
       <h2 id="form-title" class="card-title">今日记录</h2>
@@ -109,9 +116,22 @@
     </section>
 
     <section aria-labelledby="history-title">
-      <h2 id="history-title" class="card-title history-title">历史记录</h2>
+      <h2 id="history-title" class="card-title history-title">近5日记录</h2>
       <div id="record-list" class="record-list">
-        <p class="empty-hint" id="empty-hint" hidden>还没有记录，从今天的开始吧～</p>
+        <p class="empty-hint" id="empty-hint" hidden>近5日还没有记录，从今天的开始吧～</p>
+      </div>
+    </section>
+
+    </section>
+
+    <section class="tab-panel" id="panel-history" aria-label="全部历史记录" hidden>
+      <div id="history-list" class="record-list">
+        <p class="empty-hint" id="history-empty" hidden>还没有记录，从今天的开始吧～</p>
+      </div>
+      <div class="pager" id="history-pager" hidden>
+        <button type="button" class="mini-btn" data-page="prev">‹ 上一页</button>
+        <span class="pager-info" id="page-info"></span>
+        <button type="button" class="mini-btn" data-page="next">下一页 ›</button>
       </div>
     </section>
   </main>
@@ -123,6 +143,6 @@
   <script src="js/config.js?v=20260911"></script>
   <script src="js/common.js?v=20260911"></script>
   <script src="js/storage.js?v=20260911"></script>
-  <script src="js/daily.js?v=20260911"></script>
+  <script src="js/daily.js?v=20260917"></script>
 </body>
 </html>

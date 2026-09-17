@@ -6,7 +6,7 @@
   <title>目标打卡 · Stay Real and fun</title>
   <meta name="description" content="每日工作与生活打卡，长期计划分阶段推进。">
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="css/style.css?v=20260916">
+  <link rel="stylesheet" href="css/style.css?v=20260917">
 </head>
 <body>
   <header class="site-header">
@@ -25,6 +25,14 @@
 
   <main>
     <h1 class="page-title">目标打卡</h1>
+
+    <div class="page-tabs" role="tablist" aria-label="目标打卡页签">
+      <button type="button" class="page-tab" data-tab="checkin" aria-current="true">📝 每日打卡</button>
+      <button type="button" class="page-tab" data-tab="plans">🎯 长期计划</button>
+      <button type="button" class="page-tab" data-tab="history">📋 打卡历史</button>
+    </div>
+
+    <section class="tab-panel" id="panel-checkin" aria-label="每日打卡">
 
     <section class="card form-card" aria-labelledby="today-title">
       <div class="today-head">
@@ -71,6 +79,9 @@
       <p class="today-summary" id="today-summary"></p>
     </section>
 
+    </section>
+
+    <section class="tab-panel" id="panel-plans" aria-label="长期计划" hidden>
     <section aria-labelledby="long-title">
       <div class="section-head">
         <h2 id="long-title" class="card-title history-title">长期计划</h2>
@@ -78,6 +89,12 @@
       </div>
       <div id="plan-list" class="record-list"></div>
       <p class="empty-hint" id="plan-empty" hidden>还没有长期计划，点上方「＋ 新建计划」开始吧～</p>
+    </section>
+    </section>
+
+    <section class="tab-panel" id="panel-history" aria-label="打卡历史" hidden>
+      <div id="checkin-history" class="record-list"></div>
+      <p class="empty-hint" id="checkin-history-empty" hidden>还没有打卡记录，从今天的开始吧～</p>
     </section>
   </main>
 

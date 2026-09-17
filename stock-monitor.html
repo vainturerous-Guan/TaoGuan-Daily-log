@@ -278,7 +278,7 @@ tr:hover td { background: #f8fafc; }
     <div class="strategy-grid" id="planGrid"></div>
 
     <div class="footer-note">
-        数据来源：东方财富网公开 API · 资金/持仓/交易数据来自银河证券账户截图 · 仅供个人参考，不构成投资建议
+        数据来源：腾讯行情接口（失败时回退东方财富） · 资金/持仓/交易数据来自银河证券账户截图 · 仅供个人参考，不构成投资建议
     </div>
 </div>
 
@@ -519,12 +519,45 @@ function setUpdateTime() {
 function isTradeDay() { const d = new Date(); return d.getDay() >= 1 && d.getDay() <= 5; }
 
 // ==================== 数据获取 ====================
-async function fetchStock(secid) {
+// 主源：腾讯行情（qt.gtimg.cn，单请求批量、支持跨域、稳定）
+// 兜底：东方财富（push2.eastmoney.com，按单只回退）
+function secidToTencent(secid) {
+    const parts = String(secid).split('.');
+    return (parts[0] === '1' ? 'sh' : 'sz') + parts[1];
+}
+
+async function fetchStockEastmoney(secid) {
     const url = `https://push2.eastmoney.com/api/qt/stock/get?secid=${secid}&fields=${FIELDS}&_=${Date.now()}`;
     const res = await fetch(url, { cache: 'no-store' });
     const data = await res.json();
     if (data.rc !== 0 || !data.data) throw new Error('API返回异常');
     return data.data;
+}
+
+// 批量拉取腾讯行情，归一化成东财字段结构（f43最新价/f60昨收/f170涨跌幅/f48成交额-元）
+// 返回与 secids 等长的数组；个别标的未返回时为 null，交由兜底
+async function fetchAllTencent(secids) {
+    const res = await fetch('https://qt.gtimg.cn/q=' + secids.map(secidToTencent).join(','), { cache: 'no-store' });
+    if (!res.ok) throw new Error('腾讯行情HTTP ' + res.status);
+    const text = await res.text();
+    const map = {};
+    text.split(';').forEach((chunk) => {
+        const m = chunk.match(/v_(s[hz]\d{6})="([^"]*)"/);
+        if (m) map[m[1]] = m[2].split('~');
+    });
+    return secids.map((sid) => {
+        const arr = map[secidToTencent(sid)];
+        const code = String(sid).split('.')[1];
+        const unit = getPriceUnit(code);
+        const price = arr && arr.length > 37 ? parseFloat(arr[3]) : NaN;
+        if (isNaN(price) || price <= 0) return null;
+        return {
+            f43: Math.round(price * unit),
+            f60: Math.round(parseFloat(arr[4]) * unit),
+            f170: Math.round(parseFloat(arr[32]) * 100),
+            f48: Math.round(parseFloat(arr[37]) * 1e4),
+        };
+    });
 }
 
 async function fetchAll() {
@@ -533,8 +566,19 @@ async function fetchAll() {
     showError('');
     try {
         const allSecids = [...INDEX_LIST.map(i => i.secid), ...PORTFOLIO.map(s => s.secid), ...WATCHLIST.map(w => w.secid), ...CLOSED.map(c => c.secid)];
-        const promises = allSecids.map(sid => fetchStock(sid).catch(e => ({ _error: e.message, _secid: sid })));
-        const results = await Promise.all(promises);
+        let results = null;
+        try {
+            results = await fetchAllTencent(allSecids);
+        } catch (e) {
+            console.warn('腾讯行情整批失败，改用东方财富逐只拉取', e);
+        }
+        if (!results) {
+            results = await Promise.all(allSecids.map(sid => fetchStockEastmoney(sid).catch(e => ({ _error: e.message, _secid: sid }))));
+        } else {
+            results = await Promise.all(results.map((r, i) =>
+                r ? r : fetchStockEastmoney(allSecids[i]).catch(e => ({ _error: e.message, _secid: allSecids[i] }))
+            ));
+        }
         const idx = INDEX_LIST.length;
         const pLen = PORTFOLIO.length;
         const wLen = WATCHLIST.length;

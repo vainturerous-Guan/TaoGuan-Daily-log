@@ -436,6 +436,112 @@
     els.planList.insertAdjacentHTML("beforeend", html);
   }
 
+  /* ---------- 页签 ---------- */
+
+  function activateTab(name) {
+    els.tabs.forEach((tab) => {
+      if (tab.dataset.tab === name) tab.setAttribute("aria-current", "true");
+      else tab.removeAttribute("aria-current");
+    });
+    els.panels.checkin.hidden = name !== "checkin";
+    els.panels.plans.hidden = name !== "plans";
+    els.panels.history.hidden = name !== "history";
+    if (name === "history") renderHistory();
+  }
+
+  /* ---------- 打卡历史 ---------- */
+
+  function focusCellHtml(log) {
+    if (log.focusHours == null) return '<span class="cell-empty">—</span>';
+    const ok = log.focusHours >= FOCUS_GOAL;
+    return (
+      Common.escapeHtml(String(log.focusHours)) + "h " +
+      (ok ? '<span class="focus-state">✓ 达标</span>' : "")
+    );
+  }
+
+  function workCellHtml(log) {
+    if (!log.workTasks.length) return '<span class="cell-empty">—</span>';
+    const done = log.workTasks.filter((t) => t.done).length;
+    const lines =
+      '<div class="cell-line"><span class="cell-label">' + done + "/" + log.workTasks.length + " 完成</span></div>" +
+      log.workTasks
+        .map(
+          (t) =>
+            '<div class="cell-line' + (t.done ? " line-done" : "") + '">' +
+            (t.done ? "✓ " : "○ ") + Common.escapeHtml(t.name) +
+            "</div>"
+        )
+        .join("");
+    return '<div class="clamp6" title="' + Common.escapeHtml(log.workTasks.map((t) => (t.done ? "✓ " : "○ ") + t.name).join("\n")) + '">' + lines + "</div>";
+  }
+
+  function habitCellHtml(log) {
+    const activeHabits = habits.filter((h) => !h.archived);
+    const doneHabits = activeHabits.filter((h) => log.habits[h.id]);
+    if (!activeHabits.length) return '<span class="cell-empty">—</span>';
+    const lines =
+      '<div class="cell-line"><span class="cell-label">' + doneHabits.length + "/" + activeHabits.length + " 完成</span></div>" +
+      doneHabits
+        .map((h) => '<div class="cell-line">✓ ' + Common.escapeHtml(h.name) + "</div>")
+        .join("");
+    return '<div class="clamp6">' + lines + "</div>";
+  }
+
+  function renderHistory() {
+    els.historyList.querySelectorAll(".table-wrap").forEach((n) => n.remove());
+    const list = logs.slice().sort((a, b) => (a.date < b.date ? 1 : -1));
+    if (!list.length) {
+      els.historyEmpty.hidden = false;
+      return;
+    }
+    els.historyEmpty.hidden = true;
+
+    const today = Common.todayStr();
+    const rows = list
+      .map((log) => {
+        const dateHtml =
+          '<div class="cell-date">' + Common.escapeHtml(log.date) +
+          (log.date === today ? ' <span class="badge-today">今天</span>' : "") + "</div>" +
+          '<div class="cell-weekday">' + Common.escapeHtml(Common.weekdayOf(log.date)) + "</div>";
+        return (
+          '<tr data-date="' + Common.escapeHtml(log.date) + '">' +
+          "<td>" + dateHtml + "</td>" +
+          "<td>" + focusCellHtml(log) + "</td>" +
+          "<td>" + workCellHtml(log) + "</td>" +
+          "<td>" + habitCellHtml(log) + "</td>" +
+          '<td class="col-actions"><button type="button" class="btn btn-small" data-action="edit-log">编辑</button></td>' +
+          "</tr>"
+        );
+      })
+      .join("");
+
+    const wrap = document.createElement("div");
+    wrap.className = "table-wrap card";
+    wrap.innerHTML =
+      '<table class="records-table checkin-table">' +
+      "<colgroup>" +
+      '<col style="width:16%"><col style="width:15%"><col style="width:29%"><col style="width:30%"><col style="width:10%">' +
+      "</colgroup>" +
+      "<thead><tr><th>日期</th><th>高效时间</th><th>工作事项</th><th>生活习惯</th><th>操作</th></tr></thead>" +
+      "<tbody>" + rows + "</tbody>" +
+      "</table>";
+    els.historyList.appendChild(wrap);
+  }
+
+  // 历史记录点编辑 → 回到每日打卡页签并载入该日期
+  function handleHistoryClick(e) {
+    const btn = e.target.closest('button[data-action="edit-log"]');
+    if (!btn) return;
+    const tr = btn.closest("tr");
+    const date = tr && tr.dataset.date;
+    if (!date) return;
+    activateTab("checkin");
+    els.date.value = date;
+    handleDateChange();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   /* ---------- 事件：今日打卡 ---------- */
 
   function handleDateChange() {
@@ -796,6 +902,10 @@
     els.planList = $("#plan-list");
     els.planEmpty = $("#plan-empty");
     els.addPlanBtn = $("#add-plan-btn");
+    els.tabs = Array.from(document.querySelectorAll(".page-tab"));
+    els.panels = { checkin: $("#panel-checkin"), plans: $("#panel-plans"), history: $("#panel-history") };
+    els.historyList = $("#checkin-history");
+    els.historyEmpty = $("#checkin-history-empty");
   }
 
   function init() {
@@ -814,6 +924,8 @@
     els.addPlanBtn.addEventListener("click", handleAddPlan);
     els.planList.addEventListener("click", handlePlanClick);
     els.planList.addEventListener("submit", handlePlanSubmit);
+    els.tabs.forEach((tab) => tab.addEventListener("click", () => activateTab(tab.dataset.tab)));
+    els.historyList.addEventListener("click", handleHistoryClick);
 
     reloadAll(false);
   }

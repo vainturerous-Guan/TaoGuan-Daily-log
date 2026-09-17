@@ -1737,3 +1737,76 @@ body.modal-open {
 .add-form {
   margin-top: 0.4rem;
 }
+
+/* ===== 页签（目标打卡 / 生活日常记录） ===== */
+
+.page-tabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.page-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+  font-size: 0.95rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.page-tab:hover {
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+.page-tab[aria-current="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-dark);
+  font-weight: 600;
+}
+
+/* 全部历史记录等页签：拉宽到与股票监控台同宽 */
+main.main-wide {
+  max-width: none;
+}
+
+/* 翻页 */
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+  margin-top: 0.9rem;
+}
+
+.pager-info {
+  color: var(--text-soft);
+  font-size: 0.88rem;
+}
+
+/* 宽表多行截断 */
+.clamp6 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  -webkit-line-clamp: 6;
+}
+
+/* 打卡历史表 */
+.checkin-table {
+  min-width: 640px;
+}
+
+.line-done {
+  color: var(--text-soft);
+  text-decoration: line-through;
+}
