@@ -2,8 +2,15 @@
   {
     "id": "mu3p6xepja6fqk",
     "name": "学习投资",
-    "stages": [],
+    "stages": [
+      {
+        "id": "mu4xa4uulbmgtf",
+        "name": "第一阶段：学习基础知识",
+        "manual": null,
+        "tasks": []
+      }
+    ],
     "createdAt": 1789538792353,
-    "updatedAt": 1789538792353
+    "updatedAt": 1789612845078
   }
 ]
