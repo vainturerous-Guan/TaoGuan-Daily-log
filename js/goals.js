@@ -181,7 +181,7 @@
 
   function editFormHtml(kind, ref, value, maxLength) {
     const attrs = Object.keys(ref)
-      .map((k) => ' data-' + k + '="' + Common.escapeHtml(String(ref[k])) + '"')
+      .map((k) => ' data-' + k.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase()) + '="' + Common.escapeHtml(String(ref[k])) + '"')
       .join("");
     return (
       '<form class="edit-row" data-form="edit" data-edit-kind="' + kind + '"' + attrs + '>' +
@@ -316,7 +316,7 @@
 
   function addFormHtml(kind, ref, placeholder) {
     const attrs = Object.keys(ref)
-      .map((k) => ' data-' + k + '="' + Common.escapeHtml(String(ref[k])) + '"')
+      .map((k) => ' data-' + k.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase()) + '="' + Common.escapeHtml(String(ref[k])) + '"')
       .join("");
     return (
       '<form class="inline-add-form add-form" data-form="' + kind + '"' + attrs + '>' +
