@@ -1322,8 +1322,8 @@ body.modal-open {
 .monitor-frame {
   display: block;
   width: 100%;
-  height: calc(100vh - 8.5rem);
-  min-height: 540px;
+  height: 70vh; /* JS 加载后自动撑开到内容实际高度，整页由外层滚动 */
+  min-height: 480px;
   border: none;
   border-radius: var(--radius);
   background: #f5f6f7;

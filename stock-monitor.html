@@ -233,8 +233,8 @@ tr:hover td { background: #f8fafc; }
     </div>
 
     <!-- K线图弹窗 -->
-    <div id="chartModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center;">
-        <div style="background:white; border-radius:12px; width:90%; max-width:900px; max-height:90%; overflow:auto; padding:20px; position:relative;">
+    <div id="chartModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:flex-start; overflow-y:auto;">
+        <div style="background:white; border-radius:12px; width:90%; max-width:900px; max-height:90%; overflow:auto; padding:20px; position:relative; margin:56px auto 24px;">
             <button onclick="closeChart()" style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:24px; cursor:pointer; color:#64748b;">×</button>
             <h3 id="chartTitle" style="margin-bottom:16px; font-size:18px;"></h3>
             <img id="chartImg" style="width:100%; border-radius:8px;" src="" alt="K线图">
@@ -245,8 +245,8 @@ tr:hover td { background: #f8fafc; }
     </div>
 
     <!-- 交易明细弹窗 -->
-    <div id="tradesModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center;">
-        <div style="background:white; border-radius:12px; width:90%; max-width:800px; max-height:90%; overflow:auto; padding:20px; position:relative;">
+    <div id="tradesModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:flex-start; overflow-y:auto;">
+        <div style="background:white; border-radius:12px; width:90%; max-width:800px; max-height:90%; overflow:auto; padding:20px; position:relative; margin:56px auto 24px;">
             <button onclick="closeTrades()" style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:24px; cursor:pointer; color:#64748b;">×</button>
             <h3 id="tradesTitle" style="margin-bottom:16px; font-size:18px;"></h3>
             <div class="table-wrap" style="margin-bottom:12px;">
@@ -763,8 +763,29 @@ function renderClosed(results) {
     document.getElementById('closedTable').innerHTML = html;
 }
 
+// ==================== 弹窗外层对齐 ====================
+// 本页被 stocks.html 以 iframe 内嵌且高度拉满，position:fixed 弹窗相对整个 iframe；
+// 打开弹窗前把外层页面滚到 iframe 顶部，关闭后恢复原滚动位置
+let savedParentScrollY = null;
+function alignModalToView() {
+    if (window.parent === window) return;
+    try {
+        const frame = window.parent.document.querySelector('.monitor-frame');
+        if (!frame) return;
+        savedParentScrollY = window.parent.scrollY;
+        const top = frame.getBoundingClientRect().top + window.parent.scrollY;
+        window.parent.scrollTo(0, Math.max(0, top - 56));
+    } catch (e) { /* 忽略 */ }
+}
+function restoreParentScroll() {
+    if (window.parent === window || savedParentScrollY === null) return;
+    try { window.parent.scrollTo(0, savedParentScrollY); } catch (e) { /* 忽略 */ }
+    savedParentScrollY = null;
+}
+
 // ==================== K线图弹窗 ====================
 function openChart(name, code, secid) {
+    alignModalToView();
     const modal = document.getElementById('chartModal');
     const title = document.getElementById('chartTitle');
     const img = document.getElementById('chartImg');
@@ -776,10 +797,12 @@ function openChart(name, code, secid) {
 }
 function closeChart() {
     document.getElementById('chartModal').style.display = 'none';
+    restoreParentScroll();
 }
 
 // ==================== 交易明细弹窗（按买入轮次 FIFO 展示） ====================
 function openTrades(code, name) {
+    alignModalToView();
     const modal = document.getElementById('tradesModal');
     const title = document.getElementById('tradesTitle');
     const tbody = document.getElementById('tradesModalBody');
@@ -846,6 +869,7 @@ function openTrades(code, name) {
 }
 function closeTrades() {
     document.getElementById('tradesModal').style.display = 'none';
+    restoreParentScroll();
 }
 
 // 点击遮罩关闭弹窗

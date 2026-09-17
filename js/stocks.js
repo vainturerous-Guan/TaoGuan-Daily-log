@@ -67,6 +67,49 @@
     activateTab("monitor");
   }
 
+  /* ===== 股票监控 iframe 高度自适应 =====
+     同源内嵌：iframe 高度跟随内容实际高度，整页由外层滚动，避免框内滚动条和底部空白 */
+
+  function resizeMonitorFrame() {
+    const frame = els.frame;
+    if (!frame) return;
+    try {
+      const doc = frame.contentDocument;
+      if (doc && doc.documentElement) {
+        const h = Math.max(
+          doc.documentElement.scrollHeight,
+          doc.body ? doc.body.scrollHeight : 0
+        );
+        if (h > 0) frame.style.height = h + "px";
+      }
+    } catch (err) {
+      /* 非同源时保持 CSS 默认高度 */
+    }
+  }
+
+  function initMonitorFrame() {
+    els.frame = $(".monitor-frame");
+    if (!els.frame) return;
+    els.frame.addEventListener("load", () => {
+      resizeMonitorFrame();
+      try {
+        const ro = new ResizeObserver(resizeMonitorFrame);
+        ro.observe(els.frame.contentDocument.body);
+        ro.observe(els.frame.contentDocument.documentElement);
+      } catch (err) {
+        /* 忽略 */
+      }
+    });
+    // 切回监控页签时校准一次
+    els.tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        if (tab.getAttribute("data-tab") === "monitor") {
+          setTimeout(resizeMonitorFrame, 60);
+        }
+      });
+    });
+  }
+
   /* ===== 交易体系学习 ===== */
 
   function sortRecords() {
@@ -171,6 +214,7 @@
 
   async function init() {
     initTabsAndDrawer();
+    initMonitorFrame();
 
     els.form = $("#learning-form");
     els.date = $("#learning-date");
