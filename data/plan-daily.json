@@ -20,5 +20,15 @@
     },
     "createdAt": 1789538887451,
     "updatedAt": 1789617514408
+  },
+  {
+    "date": "2026-10-09",
+    "focusHours": null,
+    "workTasks": [],
+    "habits": {
+      "mu3p9vh67iz7rq": true
+    },
+    "createdAt": 1791533902298,
+    "updatedAt": 1791533902298
   }
 ]
