@@ -24,11 +24,17 @@
   {
     "date": "2026-10-09",
     "focusHours": 5,
-    "workTasks": [],
+    "workTasks": [
+      {
+        "id": "mv0p5i9isuwebq",
+        "name": "写完农商行交流应答材料",
+        "done": false
+      }
+    ],
     "habits": {
       "mu3p9vh67iz7rq": true
     },
     "createdAt": 1791533902298,
-    "updatedAt": 1791534093445
+    "updatedAt": 1791534109878
   }
 ]
