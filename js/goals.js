@@ -231,6 +231,7 @@
             editing: isEditing("work-task", { id: t.id }),
             editKind: "work-task",
             editRef: { id: t.id },
+            maxLength: 100,
             actionsHtml:
               '<button type="button" class="mini-btn" data-action="edit-work-task">编辑</button>' +
               '<button type="button" class="mini-btn" data-action="delete-work-task">删除</button>',
