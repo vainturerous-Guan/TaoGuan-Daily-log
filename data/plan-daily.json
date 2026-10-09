@@ -23,12 +23,12 @@
   },
   {
     "date": "2026-10-09",
-    "focusHours": null,
+    "focusHours": 5,
     "workTasks": [],
     "habits": {
       "mu3p9vh67iz7rq": true
     },
     "createdAt": 1791533902298,
-    "updatedAt": 1791533902298
+    "updatedAt": 1791534093445
   }
 ]
