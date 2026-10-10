@@ -42,5 +42,19 @@
     },
     "createdAt": 1791533902298,
     "updatedAt": 1791595400815
+  },
+  {
+    "date": "2026-10-10",
+    "focusHours": null,
+    "workTasks": [
+      {
+        "id": "mv1ps1mdx668k3",
+        "name": "项目说明书&概设模板分析，编写完邮件",
+        "done": false
+      }
+    ],
+    "habits": {},
+    "createdAt": 1791595627573,
+    "updatedAt": 1791595627573
   }
 ]
