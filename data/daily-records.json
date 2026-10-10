@@ -187,5 +187,32 @@
     },
     "createdAt": 1789120127340,
     "updatedAt": 1789120127340
+  },
+  {
+    "id": "mv1qedzps027hw",
+    "createdAt": 1791596670037,
+    "updatedAt": 1791596670037,
+    "date": "2026-10-10",
+    "summary": "",
+    "sleep": {
+      "bedTime": "1:38",
+      "wakeTime": "7:05"
+    },
+    "weight": {
+      "night": null,
+      "morning": 68.9
+    },
+    "diet": {
+      "snacks": "上午一杯咸奶萃，",
+      "meals": "早餐：一碗锅巴粥，一张妈妈做的鸡蛋饼，一片吐司涂抹奶酪。 很撑的一顿早饭。"
+    },
+    "todayRecord": "",
+    "work": "【今日计划】① 整理好项目说明书及需求案例，邮件发架构域。②整理项目后评价3项以上。",
+    "parenting": {
+      "life": "【今日计划·个人idea】① 给陶陶准备播客频道；② 照片断舍离——记录余量；③ 练琴继续。",
+      "lifeMindful": "",
+      "mindful": "",
+      "reflection": ""
+    }
   }
 ]
