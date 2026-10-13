@@ -27,6 +27,12 @@
             "name": "掌握基础规则：T+1、涨跌停限制、1手=100股",
             "done": false,
             "doneAt": null
+          },
+          {
+            "id": "mv6csdh97ftsc9",
+            "name": "学会查核心估值指标：PE、PB、ROE、股息率（理杏仁/东方财富Choice）",
+            "done": false,
+            "doneAt": null
           }
         ]
       },
@@ -44,6 +50,6 @@
       }
     ],
     "createdAt": 1791875187403,
-    "updatedAt": 1791876136485
+    "updatedAt": 1791876138813
   }
 ]
