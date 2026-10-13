@@ -8,10 +8,16 @@
         "name": "第一阶段：学习基础知识",
         "manual": null,
         "tasks": []
+      },
+      {
+        "id": "mv6ckpt2q28qbe",
+        "name": "阶段一：理论学习（1-2个月）",
+        "manual": null,
+        "tasks": []
       }
     ],
     "createdAt": 1789538792353,
-    "updatedAt": 1791875751197
+    "updatedAt": 1791875781542
   },
   {
     "id": "mv6c7zd7908x38",
