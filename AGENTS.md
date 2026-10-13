@@ -23,6 +23,7 @@
 - `goals.html`（目标打卡）：页签结构（每日打卡 / 长期计划 / 打卡历史）。每日打卡（高效时间≥3h、当日工作事项、生活习惯清单，均打勾划线）；长期计划（计划→阶段→任务；阶段状态按子任务自动推导：全完成=✓、有完成=●、否则=○，可点状态圈手动覆盖）；打卡历史（按日列表展示每日完成情况，点「编辑」跳回每日打卡载入该日期）；数据存 `data/plan-habits.json`（习惯清单，含归档）、`data/plan-long.json`（长期计划）、`data/plan-daily.json`（按日期 upsert，每日一条）
 - `daily.html`（生活日常记录）：页签结构（今日记录 / 全部历史记录）。今日记录页含表单 + 近5日记录（原列宽样式）；全部历史记录为拉宽（与股票监控台同宽）的完整表格，10条/页翻页
 - `parenting.html`（陶关亲子手记）：暂不启用，导航与首页入口已隐藏，文件保留
+- `reading.html`（读书笔记）：登记书籍（登记日期+书名/文名，按登记顺序 date 升序排列）；每本书含 内容简介（大输入框、输入防抖自动保存、不限字数）、金句/关键知识点、感悟（各多条、每条≤100字，可编辑删除）；附件拖拽直存本机项目文件夹 `attachments/reading/`（File System Access API，句柄存 IndexedDB key `readingRootDir`，附件不入仓库，网页只记 name+path，删除附件不动本机文件）；数据存 `data/reading-books.json`
 - `stocks.html`：左侧抽屉页签
   - 📊 股票监控 = iframe 内嵌 `stock-monitor.html`（独立页面，数据自给）；iframe 高度自适应内容（js/stocks.js 里 ResizeObserver 实现），整页由外层滚动，无框内滚动条；弹窗打开时外层自动对齐 iframe 顶部、关闭恢复滚动位置
   - 📚 交易体系学习：数据存 `data/stock-learning.json`（结构 `{ id, date, name, point, createdAt, updatedAt }`，按日期+时间倒序）

@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>读书笔记 · Stay Real and fun</title>
-  <meta name="description" content="读过的好书、摘抄与读后感。">
+  <meta name="description" content="读过的书：内容简介、金句摘抄与读后感悟。">
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="css/style.css?v=20260917">
+  <link rel="stylesheet" href="css/style.css?v=20261013">
 </head>
 <body>
   <header class="site-header">
@@ -25,9 +25,46 @@
 
   <main>
     <h1 class="page-title">📚 读书笔记</h1>
-    <section class="card placeholder-card">
-      <p class="placeholder-desc">记录读过的书、值得摘抄的段落，以及读完之后的所思所想。</p>
-      <p class="placeholder-note">🚧 内容建设中，敬请期待～</p>
+
+    <section class="card form-card" aria-labelledby="form-title">
+      <h2 id="form-title" class="card-title">登记新书</h2>
+      <form id="book-form" novalidate>
+        <div class="form-row date-row">
+          <div class="form-field date-field">
+            <label for="book-date">登记日期</label>
+            <input type="date" id="book-date" required>
+            <span class="weekday" id="weekday-display"></span>
+          </div>
+          <div class="form-field summary-field">
+            <label for="book-name">书名/文名</label>
+            <input type="text" id="book-name" placeholder="如：《漫步华尔街》" maxlength="100" required>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" id="submit-btn">添加书籍</button>
+        </div>
+      </form>
+
+      <div class="folder-settings" aria-label="附件保存设置">
+        <div class="sub-head">附件保存设置</div>
+        <div class="attach-folder-row">
+          <button type="button" class="btn btn-ghost btn-small" id="folder-btn">选择本地保存文件夹</button>
+          <button type="button" class="btn btn-ghost btn-small" id="open-folder-btn">打开所在文件夹</button>
+          <span class="attach-folder-status" id="folder-status"></span>
+        </div>
+        <div class="folder-path-row">
+          <span class="folder-path-label">本机项目路径</span>
+          <input type="text" id="project-base" spellcheck="false" aria-label="本机项目路径">
+        </div>
+        <p class="folder-hint">附件直接保存到本机项目文件夹 <code>attachments/reading/</code>（不入仓库、不在网页上）；网页只记录文件名与保存地址，删除附件不会动本机文件。</p>
+      </div>
+    </section>
+
+    <section aria-labelledby="list-title">
+      <h2 id="list-title" class="card-title history-title">书单（按登记顺序）</h2>
+      <p id="loading-hint" class="loading-hint">加载中…</p>
+      <div id="book-list" class="record-list"></div>
+      <p class="empty-hint" id="empty-hint" hidden>还没有登记过书，从刚读完的开始吧～</p>
     </section>
   </main>
 
@@ -35,7 +72,9 @@
     <p>© <span class="current-year">2026</span> Stay Real and fun · 用心记录每一天</p>
   </footer>
 
-  <script src="js/config.js?v=20260911"></script>
-  <script src="js/common.js?v=20260911"></script>
+  <script src="js/config.js?v=20260914"></script>
+  <script src="js/common.js?v=20260914"></script>
+  <script src="js/storage.js?v=20260914"></script>
+  <script src="js/reading.js?v=20261013"></script>
 </body>
 </html>
