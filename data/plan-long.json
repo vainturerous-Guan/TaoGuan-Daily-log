@@ -58,7 +58,14 @@
         "id": "mv6cop0j1jpv2f",
         "name": "阶段二：模拟盘实操（1个月）",
         "manual": null,
-        "tasks": []
+        "tasks": [
+          {
+            "id": "mv6csknwhkl1iz",
+            "name": "券商APP练习下单、撤单，体验T+1",
+            "done": false,
+            "doneAt": null
+          }
+        ]
       },
       {
         "id": "mv6corcqz4hbue",
@@ -68,6 +75,6 @@
       }
     ],
     "createdAt": 1791875187403,
-    "updatedAt": 1791876145795
+    "updatedAt": 1791876148124
   }
 ]
