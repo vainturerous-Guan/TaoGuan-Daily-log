@@ -10,12 +10,6 @@
         "tasks": []
       },
       {
-        "id": "mv6cks55bduoqt",
-        "name": "阶段二：模拟盘实操（1个月）",
-        "manual": null,
-        "tasks": []
-      },
-      {
         "id": "mv6ckuh6n9zi4n",
         "name": "阶段三：小资金实战",
         "manual": null,
@@ -23,7 +17,7 @@
       }
     ],
     "createdAt": 1789538792353,
-    "updatedAt": 1791875936997
+    "updatedAt": 1791875939013
   },
   {
     "id": "mv6c7zd7908x38",
