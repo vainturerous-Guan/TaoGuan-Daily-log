@@ -77,10 +77,17 @@
         "id": "mv6corcqz4hbue",
         "name": "阶段三：小资金实战",
         "manual": null,
-        "tasks": []
+        "tasks": [
+          {
+            "id": "mv6cso9s5l7qvo",
+            "name": "从ETF开始首笔交易",
+            "done": false,
+            "doneAt": null
+          }
+        ]
       }
     ],
     "createdAt": 1791875187403,
-    "updatedAt": 1791876150473
+    "updatedAt": 1791876152799
   }
 ]
