@@ -1986,3 +1986,75 @@ main.main-wide {
   flex: 1;
   min-width: 180px;
 }
+
+/* 书名防重提示 */
+.field-error {
+  margin: 0.6rem 0 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #b23a2a;
+}
+
+/* 每章内容概览 */
+.chapter-title {
+  flex-shrink: 0;
+  font-weight: 700;
+  color: var(--accent-dark);
+  max-width: 40%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chapter-title-input {
+  flex: 0 1 9rem;
+  max-width: 32%;
+}
+
+.edit-row .chapter-title-input {
+  flex: 0 1 9rem;
+  max-width: 32%;
+}
+
+/* 读过的书页签 */
+.book-row .book-head {
+  margin-bottom: 0;
+}
+
+/* 图书详情弹窗（只读预览） */
+.detail-meta {
+  margin: 0 0 0.4rem;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+}
+
+.detail-text {
+  margin: 0.4rem 0 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.detail-list {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.93rem;
+}
+
+.detail-list li {
+  padding: 0.35rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  overflow-wrap: anywhere;
+}
+
+.detail-size {
+  color: var(--text-soft);
+  font-size: 0.8rem;
+}

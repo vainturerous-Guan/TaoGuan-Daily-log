@@ -6,7 +6,7 @@
   <title>读书笔记 · Stay Real and fun</title>
   <meta name="description" content="读过的书：内容简介、金句摘抄与读后感悟。">
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="css/style.css?v=20261013">
+  <link rel="stylesheet" href="css/style.css?v=20261013b">
 </head>
 <body>
   <header class="site-header">
@@ -26,6 +26,12 @@
   <main>
     <h1 class="page-title">📚 读书笔记</h1>
 
+    <div class="page-tabs" role="tablist" aria-label="读书笔记页签">
+      <button type="button" class="page-tab" data-tab="notes" aria-current="true">📝 读书笔记</button>
+      <button type="button" class="page-tab" data-tab="books">📖 读过的书</button>
+    </div>
+
+    <section class="tab-panel" id="panel-notes" aria-label="读书笔记">
     <section class="card form-card" aria-labelledby="form-title">
       <h2 id="form-title" class="card-title">登记新书</h2>
       <form id="book-form" novalidate>
@@ -43,6 +49,7 @@
         <div class="form-actions">
           <button type="submit" class="btn btn-primary" id="submit-btn">添加书籍</button>
         </div>
+        <p class="field-error" id="dup-name-hint" hidden></p>
       </form>
 
       <div class="folder-settings" aria-label="附件保存设置">
@@ -66,7 +73,24 @@
       <div id="book-list" class="record-list"></div>
       <p class="empty-hint" id="empty-hint" hidden>还没有登记过书，从刚读完的开始吧～</p>
     </section>
+    </section>
+
+    <section class="tab-panel" id="panel-books" aria-label="读过的书" hidden>
+      <h2 class="card-title history-title">读过的书（按登记日期排序）</h2>
+      <div id="book-shelf" class="record-list"></div>
+      <p class="empty-hint" id="books-empty" hidden>还没有登记过书，从刚读完的开始吧～</p>
+    </section>
   </main>
+
+  <div class="modal-overlay" id="book-detail-overlay" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-label="图书详情">
+      <div class="modal-head">
+        <h3 id="book-detail-title">图书详情</h3>
+        <button type="button" class="modal-close" id="book-detail-close" aria-label="关闭">✕</button>
+      </div>
+      <div class="modal-body" id="book-detail-body"></div>
+    </div>
+  </div>
 
   <footer class="site-footer">
     <p>© <span class="current-year">2026</span> Stay Real and fun · 用心记录每一天</p>
@@ -75,6 +99,6 @@
   <script src="js/config.js?v=20260914"></script>
   <script src="js/common.js?v=20260914"></script>
   <script src="js/storage.js?v=20260914"></script>
-  <script src="js/reading.js?v=20261013"></script>
+  <script src="js/reading.js?v=20261013b"></script>
 </body>
 </html>

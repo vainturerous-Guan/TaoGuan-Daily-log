@@ -1,5 +1,6 @@
 // 读书笔记频道逻辑
 // 数据结构：{ id, date(登记日期), name(书名/文名), intro(内容简介),
+//            chapters:[{ id, title(章节), text(内容概览), createdAt }],
 //            quotes:[{ id, text(≤100字), createdAt }],
 //            thoughts:[{ id, text(≤100字), createdAt }],
 //            attachments:[{ id, name, path, size, savedAt }],
@@ -20,10 +21,13 @@
   const DEFAULT_PROJECT_BASE = "/Users/wanqiu/Documents/kimi/KimiCode/ericzzy_com";
   const BASE_PATH_KEY = "taoguan_reading_project_base";
   const NOTE_MAX = 100; // 金句/感悟每条字数上限
+  const CHAPTER_TITLE_MAX = 50; // 章节名字数上限
+  const CHAPTER_TEXT_MAX = 200; // 每章内容概览字数上限
 
   let books = [];
   let editingBookId = null;   // 正在编辑书名的书 id
   let editingNote = null;     // { bookId, field:"quotes"|"thoughts", noteId }
+  let editingChapter = null;  // { bookId, chapterId }
   const introDrafts = {};     // bookId → 内容简介未保存草稿
   let introTimer = null;
 
@@ -69,12 +73,34 @@
     return books.find((b) => b.id === id);
   }
 
+  // 书名防重：归一化后比较（去首尾空白、合并连续空白、忽略大小写）
+  function nameKey(name) {
+    return str(name).trim().replace(/\s+/g, " ").toLowerCase();
+  }
+
+  function findBookByName(name, excludeId) {
+    const key = nameKey(name);
+    if (!key) return null;
+    return books.find((b) => b.id !== excludeId && nameKey(b.name) === key) || null;
+  }
+
   /* ---------- 归一化（防脏数据） ---------- */
 
   function normalizeNotes(arr) {
     return (Array.isArray(arr) ? arr : [])
       .filter((n) => n && typeof n === "object")
       .map((n) => ({ id: str(n.id) || newId(), text: str(n.text).slice(0, NOTE_MAX), createdAt: numOrNull(n.createdAt) || Date.now() }));
+  }
+
+  function normalizeChapters(arr) {
+    return (Array.isArray(arr) ? arr : [])
+      .filter((c) => c && typeof c === "object")
+      .map((c) => ({
+        id: str(c.id) || newId(),
+        title: str(c.title).slice(0, CHAPTER_TITLE_MAX),
+        text: str(c.text).slice(0, CHAPTER_TEXT_MAX),
+        createdAt: numOrNull(c.createdAt) || Date.now(),
+      }));
   }
 
   function normalizeAttachments(arr) {
@@ -96,6 +122,7 @@
       date: str(b.date),
       name: str(b.name),
       intro: str(b.intro),
+      chapters: normalizeChapters(b.chapters),
       quotes: normalizeNotes(b.quotes),
       thoughts: normalizeNotes(b.thoughts),
       attachments: normalizeAttachments(b.attachments),
@@ -428,6 +455,49 @@
     );
   }
 
+  function chapterItemsHtml(book) {
+    const list = book.chapters;
+    if (!list.length) {
+      return '<li class="check-hint">还没有章节概览，读完一章记一章～</li>';
+    }
+    return list
+      .map((c) => {
+        const editing =
+          editingChapter && editingChapter.bookId === book.id && editingChapter.chapterId === c.id;
+        if (editing) {
+          return (
+            '<li class="note-item"><form class="edit-row" data-form="edit-chapter" data-book-id="' + book.id +
+            '" data-chapter-id="' + c.id + '">' +
+            '<input type="text" class="chapter-title-input" maxlength="' + CHAPTER_TITLE_MAX + '" value="' + escapeAttr(c.title) + '" placeholder="章节，如 第1章">' +
+            '<input type="text" class="chapter-text-input" maxlength="' + CHAPTER_TEXT_MAX + '" value="' + escapeAttr(c.text) + '" placeholder="本章内容概览">' +
+            '<button type="submit" class="btn btn-small">保存</button>' +
+            '<button type="button" class="mini-btn" data-action="cancel-edit-chapter">取消</button></form></li>'
+          );
+        }
+        return (
+          '<li class="note-item"><span class="chapter-title">' + Common.escapeHtml(c.title) + "</span>" +
+          '<span class="note-text">' + Common.escapeHtml(c.text) + "</span>" +
+          '<span class="note-actions">' +
+          '<button type="button" class="mini-btn" data-action="edit-chapter" data-chapter-id="' + c.id + '">编辑</button>' +
+          '<button type="button" class="mini-btn" data-action="delete-chapter" data-chapter-id="' + c.id + '">删除</button>' +
+          "</span></li>"
+        );
+      })
+      .join("");
+  }
+
+  function chapterSectionHtml(book) {
+    return (
+      '<div class="form-field book-section">' +
+      "<label>每章内容概览</label>" +
+      '<ul class="note-list chapter-list">' + chapterItemsHtml(book) + "</ul>" +
+      '<form class="inline-add-form" data-form="add-chapter" data-book-id="' + book.id + '">' +
+      '<input type="text" class="chapter-title-input" maxlength="' + CHAPTER_TITLE_MAX + '" placeholder="章节，如 第1章">' +
+      '<input type="text" class="chapter-text-input" maxlength="' + CHAPTER_TEXT_MAX + '" placeholder="本章内容概览，回车保存">' +
+      '<button type="submit" class="btn btn-small">添加</button></form></div>'
+    );
+  }
+
   function attachListHtml(book) {
     if (!book.attachments.length) {
       return '<li class="check-hint">还没有附件，把文件拖到上方虚线区域即可保存到本机文件夹～</li>';
@@ -474,6 +544,7 @@
       '<label>内容简介 <span class="field-hint">改动后自动保存</span></label>' +
       '<textarea class="book-intro" rows="5" data-book-id="' + book.id + '" placeholder="这本书讲了什么？为什么值得读？">' +
       Common.escapeHtml(book.intro) + "</textarea></div>" +
+      chapterSectionHtml(book) +
       noteSectionHtml(book, "quotes", "金句 / 关键知识点", "录入一条金句或关键知识点，回车保存") +
       noteSectionHtml(book, "thoughts", "感悟", "当下的一点想法，回车保存") +
       '<div class="form-field book-section">' +
@@ -491,12 +562,109 @@
     sortBooks();
     els.list.innerHTML = books.map(bookHtml).join("");
     els.emptyHint.hidden = books.length > 0;
+    renderBookShelf();
+  }
+
+  /* ---------- 读过的书页签 ---------- */
+
+  function shelfRowHtml(book) {
+    return (
+      '<article class="record-item book-row" data-book-id="' + book.id + '">' +
+      '<div class="book-head">' +
+      '<span class="book-date">' + Common.escapeHtml(book.date) + "</span>" +
+      '<span class="book-weekday">' + Common.escapeHtml(Common.weekdayOf(book.date)) + "</span>" +
+      '<h3 class="book-title">' + Common.escapeHtml(book.name) + "</h3>" +
+      '<span class="book-head-actions">' +
+      '<button type="button" class="mini-btn" data-action="view-book">详情</button>' +
+      '<button type="button" class="mini-btn" data-action="goto-edit-book">编辑</button>' +
+      "</span></div></article>"
+    );
+  }
+
+  function renderBookShelf() {
+    sortBooks();
+    els.shelf.innerHTML = books.map(shelfRowHtml).join("");
+    els.shelfEmpty.hidden = books.length > 0;
+  }
+
+  function activateTab(name) {
+    els.tabs.forEach((tab) => {
+      if (tab.dataset.tab === name) tab.setAttribute("aria-current", "true");
+      else tab.removeAttribute("aria-current");
+    });
+    els.panels.notes.hidden = name !== "notes";
+    els.panels.books.hidden = name !== "books";
+    if (name === "books") renderBookShelf();
+  }
+
+  /* ---------- 图书详情弹窗（只读预览） ---------- */
+
+  function detailListHtml(items, emptyText, renderItem) {
+    if (!items.length) return '<p class="cell-empty">' + emptyText + "</p>";
+    return '<ul class="detail-list">' + items.map(renderItem).join("") + "</ul>";
+  }
+
+  function detailBodyHtml(book) {
+    const head =
+      '<p class="detail-meta">' + Common.escapeHtml(book.date) + "　" +
+      Common.escapeHtml(Common.weekdayOf(book.date)) + "</p>";
+    const intro =
+      '<div class="form-field book-section"><label>内容简介</label>' +
+      '<p class="detail-text">' +
+      (book.intro ? Common.escapeHtml(book.intro) : '<span class="cell-empty">未填写</span>') + "</p></div>";
+    const chapters =
+      '<div class="form-field book-section"><label>每章内容概览</label>' +
+      detailListHtml(book.chapters, "还没有章节概览", (c) =>
+        "<li><strong>" + Common.escapeHtml(c.title) + "</strong>" +
+        (c.text ? "　" + Common.escapeHtml(c.text) : "") + "</li>") +
+      "</div>";
+    const quotes =
+      '<div class="form-field book-section"><label>金句 / 关键知识点</label>' +
+      detailListHtml(book.quotes, "还没有金句", (n) => "<li>" + Common.escapeHtml(n.text) + "</li>") +
+      "</div>";
+    const thoughts =
+      '<div class="form-field book-section"><label>感悟</label>' +
+      detailListHtml(book.thoughts, "还没有感悟", (n) => "<li>" + Common.escapeHtml(n.text) + "</li>") +
+      "</div>";
+    const attachments =
+      '<div class="form-field book-section"><label>附件</label>' +
+      detailListHtml(book.attachments, "还没有附件", (a) =>
+        "<li>" + Common.escapeHtml(a.name) +
+        (a.size != null ? ' <span class="detail-size">' + formatSize(a.size) + "</span>" : "") + "</li>") +
+      "</div>";
+    return head + intro + chapters + quotes + thoughts + attachments;
+  }
+
+  function openBookDetail(bookId) {
+    const book = findBook(bookId);
+    if (!book) return;
+    els.detailTitle.textContent = book.name;
+    els.detailBody.innerHTML = detailBodyHtml(book);
+    els.detailOverlay.hidden = false;
+    document.body.classList.add("modal-open");
+  }
+
+  function closeBookDetail() {
+    els.detailOverlay.hidden = true;
+    document.body.classList.remove("modal-open");
   }
 
   /* ---------- 事件：登记新书 ---------- */
 
   function updateWeekday() {
     els.weekday.textContent = els.date.value ? Common.weekdayOf(els.date.value) : "";
+  }
+
+  function showDupHint(name, dup) {
+    const msg = "「" + name + "」已于 " + dup.date + " 登记过，请勿重复保存";
+    els.dupHint.textContent = "⚠️ " + msg;
+    els.dupHint.hidden = false;
+    Common.toast(msg, "error");
+  }
+
+  function hideDupHint() {
+    els.dupHint.hidden = true;
+    els.dupHint.textContent = "";
   }
 
   async function handleAddBook(e) {
@@ -510,6 +678,12 @@
       Common.toast("请填写书名/文名", "error");
       return;
     }
+    const dup = findBookByName(name);
+    if (dup) {
+      showDupHint(name, dup);
+      return;
+    }
+    hideDupHint();
     applyIntroDrafts();
     const now = Date.now();
     books.push({
@@ -517,6 +691,7 @@
       date: els.date.value,
       name: name,
       intro: "",
+      chapters: [],
       quotes: [],
       thoughts: [],
       attachments: [],
@@ -547,6 +722,15 @@
     const book = findBook(bookId);
     if (!book) return;
     book[field] = book[field].filter((n) => n.id !== noteId);
+    book.updatedAt = Date.now();
+    saveBooks();
+    renderList();
+  }
+
+  function deleteChapter(bookId, chapterId) {
+    const book = findBook(bookId);
+    if (!book) return;
+    book.chapters = book.chapters.filter((c) => c.id !== chapterId);
     book.updatedAt = Date.now();
     saveBooks();
     renderList();
@@ -602,12 +786,44 @@
         applyIntroDrafts();
         deleteNote(bookId, btn.dataset.field, btn.dataset.noteId);
         break;
+      case "edit-chapter":
+        applyIntroDrafts();
+        editingChapter = { bookId: bookId, chapterId: btn.dataset.chapterId };
+        renderList();
+        break;
+      case "cancel-edit-chapter":
+        editingChapter = null;
+        renderList();
+        break;
+      case "delete-chapter":
+        applyIntroDrafts();
+        deleteChapter(bookId, btn.dataset.chapterId);
+        break;
       case "delete-attachment": {
         const item = btn.closest("[data-att-id]");
         applyIntroDrafts();
         deleteAttachment(bookId, item && item.dataset.attId);
         break;
       }
+    }
+  }
+
+  /* ---------- 事件：读过的书页签（委托） ---------- */
+
+  function handleShelfClick(e) {
+    const btn = e.target.closest && e.target.closest("[data-action]");
+    if (!btn) return;
+    const row = btn.closest("[data-book-id]");
+    const bookId = row && row.dataset.bookId;
+    if (btn.dataset.action === "view-book") {
+      openBookDetail(bookId);
+    } else if (btn.dataset.action === "goto-edit-book") {
+      applyIntroDrafts();
+      editingBookId = bookId;
+      activateTab("notes");
+      renderList();
+      const card = els.list.querySelector('[data-book-id="' + bookId + '"]');
+      if (card) card.scrollIntoView({ block: "start", behavior: "smooth" });
     }
   }
 
@@ -653,6 +869,51 @@
       return;
     }
 
+    if (kind === "add-chapter") {
+      const title = form.querySelector(".chapter-title-input").value.trim().slice(0, CHAPTER_TITLE_MAX);
+      const text = form.querySelector(".chapter-text-input").value.trim().slice(0, CHAPTER_TEXT_MAX);
+      if (!title) {
+        Common.toast("请填写章节，如 第1章", "error");
+        return;
+      }
+      if (!text) {
+        Common.toast("请填写本章内容概览", "error");
+        return;
+      }
+      if (!book) return;
+      applyIntroDrafts();
+      book.chapters.push({ id: newId(), title: title, text: text, createdAt: now });
+      book.updatedAt = now;
+      await saveBooks();
+      renderList();
+      return;
+    }
+
+    if (kind === "edit-chapter") {
+      const title = form.querySelector(".chapter-title-input").value.trim().slice(0, CHAPTER_TITLE_MAX);
+      const text = form.querySelector(".chapter-text-input").value.trim().slice(0, CHAPTER_TEXT_MAX);
+      if (!title) {
+        Common.toast("请填写章节，如 第1章", "error");
+        return;
+      }
+      if (!text) {
+        Common.toast("请填写本章内容概览", "error");
+        return;
+      }
+      if (!book) return;
+      const chapter = book.chapters.find((c) => c.id === form.dataset.chapterId);
+      if (chapter) {
+        applyIntroDrafts();
+        chapter.title = title;
+        chapter.text = text;
+        book.updatedAt = now;
+        editingChapter = null;
+        await saveBooks();
+        renderList();
+      }
+      return;
+    }
+
     if (kind === "edit-book") {
       const dateInput = form.querySelector("input[type=date]");
       const nameInput = form.querySelector("input[type=text]");
@@ -663,6 +924,11 @@
       }
       if (!name) {
         Common.toast("请填写书名/文名", "error");
+        return;
+      }
+      const dup = findBookByName(name, bookId);
+      if (dup) {
+        Common.toast("「" + name + "」已于 " + dup.date + " 登记过，请勿重复保存", "error");
         return;
       }
       if (book) {
@@ -727,6 +993,7 @@
     els.weekday = $("#weekday-display");
     els.nameInput = $("#book-name");
     els.submitBtn = $("#submit-btn");
+    els.dupHint = $("#dup-name-hint");
     els.folderBtn = $("#folder-btn");
     els.openFolderBtn = $("#open-folder-btn");
     els.folderStatus = $("#folder-status");
@@ -734,6 +1001,14 @@
     els.list = $("#book-list");
     els.loading = $("#loading-hint");
     els.emptyHint = $("#empty-hint");
+    els.tabs = Array.from(document.querySelectorAll(".page-tab"));
+    els.panels = { notes: $("#panel-notes"), books: $("#panel-books") };
+    els.shelf = $("#book-shelf");
+    els.shelfEmpty = $("#books-empty");
+    els.detailOverlay = $("#book-detail-overlay");
+    els.detailTitle = $("#book-detail-title");
+    els.detailBody = $("#book-detail-body");
+    els.detailClose = $("#book-detail-close");
   }
 
   function loadProjectBase() {
@@ -752,6 +1027,7 @@
     updateWeekday();
     els.date.addEventListener("change", updateWeekday);
     els.form.addEventListener("submit", handleAddBook);
+    els.nameInput.addEventListener("input", hideDupHint);
     els.folderBtn.addEventListener("click", handleFolderBtn);
     els.openFolderBtn.addEventListener("click", openAttachFolder);
     loadProjectBase();
@@ -770,6 +1046,16 @@
     els.list.addEventListener("dragover", handleListDragOver);
     els.list.addEventListener("dragleave", handleListDragLeave);
     els.list.addEventListener("drop", handleListDrop);
+
+    els.tabs.forEach((tab) => tab.addEventListener("click", () => activateTab(tab.dataset.tab)));
+    els.shelf.addEventListener("click", handleShelfClick);
+    els.detailClose.addEventListener("click", closeBookDetail);
+    els.detailOverlay.addEventListener("click", (e) => {
+      if (e.target === els.detailOverlay) closeBookDetail();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && els.detailOverlay && !els.detailOverlay.hidden) closeBookDetail();
+    });
 
     // 恢复上次选择的项目文件夹句柄
     try {
