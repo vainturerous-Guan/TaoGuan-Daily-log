@@ -33,6 +33,18 @@
             "name": "学会查核心估值指标：PE、PB、ROE、股息率（理杏仁/东方财富Choice）",
             "done": false,
             "doneAt": null
+          },
+          {
+            "id": "mv6csf9yukldvr",
+            "name": "读《聪明的投资者》",
+            "done": false,
+            "doneAt": null
+          },
+          {
+            "id": "mv6csh2jlnjqty",
+            "name": "读《彼得·林奇的成功投资》",
+            "done": false,
+            "doneAt": null
           }
         ]
       },
@@ -50,6 +62,6 @@
       }
     ],
     "createdAt": 1791875187403,
-    "updatedAt": 1791876138813
+    "updatedAt": 1791876143467
   }
 ]
