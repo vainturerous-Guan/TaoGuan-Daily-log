@@ -1,5 +1,32 @@
 [
   {
+    "id": "mv1qedzps027hw",
+    "date": "2026-10-10",
+    "summary": "",
+    "sleep": {
+      "bedTime": "1:38",
+      "wakeTime": "7:05"
+    },
+    "weight": {
+      "night": null,
+      "morning": 68.9
+    },
+    "diet": {
+      "snacks": "上午一杯咸奶萃，",
+      "meals": "早餐：一碗锅巴粥，一张妈妈做的鸡蛋饼，一片吐司涂抹奶酪。 很撑的一顿早饭。"
+    },
+    "todayRecord": "",
+    "work": "【今日计划】① 整理好项目说明书及需求案例，邮件发架构域。②整理项目后评价3项以上。",
+    "parenting": {
+      "life": "【今日计划·个人idea】① 给陶陶准备播客频道；② 照片断舍离——记录余量；③ 练琴继续。",
+      "lifeMindful": "",
+      "mindful": "",
+      "reflection": ""
+    },
+    "createdAt": 1791596670037,
+    "updatedAt": 1791596670037
+  },
+  {
     "id": "mv0aa6ldd3mfab",
     "date": "2026-10-09",
     "summary": "整体高效且自洽的一天",
@@ -189,27 +216,27 @@
     "updatedAt": 1789120127340
   },
   {
-    "id": "mv1qedzps027hw",
-    "createdAt": 1791596670037,
-    "updatedAt": 1791596670037,
-    "date": "2026-10-10",
+    "id": "mv6b56miu48e4c",
+    "createdAt": 1791873377226,
+    "updatedAt": 1791873377226,
+    "date": "2026-10-12",
     "summary": "",
     "sleep": {
-      "bedTime": "1:38",
+      "bedTime": "23:35",
       "wakeTime": "7:05"
     },
     "weight": {
       "night": null,
-      "morning": 68.9
+      "morning": null
     },
     "diet": {
-      "snacks": "上午一杯咸奶萃，",
-      "meals": "早餐：一碗锅巴粥，一张妈妈做的鸡蛋饼，一片吐司涂抹奶酪。 很撑的一顿早饭。"
+      "snacks": "一杯 manner 清澄芝士拿铁（大杯），配自制美式 300ml",
+      "meals": "早餐：一个蛋挞 + 2个老婆饼；午餐：2/3个麦当劳龙焰鸡腿堡 + 1包中薯条配山葵酱 + 1份薄皮焦香V翅"
     },
     "todayRecord": "",
-    "work": "【今日计划】① 整理好项目说明书及需求案例，邮件发架构域。②整理项目后评价3项以上。",
+    "work": "【今日计划】① 农商行交流材料应答修改完成；② 业技融合创新奖材料编写完成。",
     "parenting": {
-      "life": "【今日计划·个人idea】① 给陶陶准备播客频道；② 照片断舍离——记录余量；③ 练琴继续。",
+      "life": "【今日计划·个人idea】① 照片断舍离100+；② 补一个陶陶的视频剪辑；③ 搞定新的小红书账号；④ 开始练琴（如有空）。",
       "lifeMindful": "",
       "mindful": "",
       "reflection": ""
