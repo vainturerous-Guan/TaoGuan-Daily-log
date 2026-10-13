@@ -83,11 +83,17 @@
             "name": "从ETF开始首笔交易",
             "done": false,
             "doneAt": null
+          },
+          {
+            "id": "mv6csq2bqjvuoa",
+            "name": "建立投资账簿，记录每笔交易的理由和结果",
+            "done": false,
+            "doneAt": null
           }
         ]
       }
     ],
     "createdAt": 1791875187403,
-    "updatedAt": 1791876152799
+    "updatedAt": 1791876155122
   }
 ]
