@@ -14,10 +14,16 @@
         "name": "阶段一：理论学习（1-2个月）",
         "manual": null,
         "tasks": []
+      },
+      {
+        "id": "mv6c8pzpqodxdy",
+        "name": "阶段二：模拟盘实操（1个月）",
+        "manual": null,
+        "tasks": []
       }
     ],
     "createdAt": 1789538792353,
-    "updatedAt": 1791875219385
+    "updatedAt": 1791875221909
   },
   {
     "id": "mv6c7zd7908x38",
