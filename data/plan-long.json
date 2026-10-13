@@ -16,8 +16,15 @@
   {
     "id": "mv6c7zd7908x38",
     "name": "投资学习计划",
-    "stages": [],
+    "stages": [
+      {
+        "id": "mv6comofk2z4oy",
+        "name": "阶段一：理论学习（1-2个月）",
+        "manual": null,
+        "tasks": []
+      }
+    ],
     "createdAt": 1791875187403,
-    "updatedAt": 1791875187403
+    "updatedAt": 1791875964111
   }
 ]
