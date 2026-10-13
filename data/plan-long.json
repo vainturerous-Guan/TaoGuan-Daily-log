@@ -10,12 +10,6 @@
         "tasks": []
       },
       {
-        "id": "mv6ckpt2q28qbe",
-        "name": "阶段一：理论学习（1-2个月）",
-        "manual": null,
-        "tasks": []
-      },
-      {
         "id": "mv6cks55bduoqt",
         "name": "阶段二：模拟盘实操（1个月）",
         "manual": null,
@@ -29,7 +23,7 @@
       }
     ],
     "createdAt": 1789538792353,
-    "updatedAt": 1791875787594
+    "updatedAt": 1791875936997
   },
   {
     "id": "mv6c7zd7908x38",
