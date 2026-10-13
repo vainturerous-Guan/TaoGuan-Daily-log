@@ -95,11 +95,17 @@
             "name": "执行止损纪律：个股亏10%止损，盈利15%-20%分批止盈；买入前写好入场价/止损位/目标位",
             "done": false,
             "doneAt": null
+          },
+          {
+            "id": "mv6cstnhs8rbi0",
+            "name": "每季度复盘一次，根据实际效果调整策略",
+            "done": false,
+            "doneAt": null
           }
         ]
       }
     ],
     "createdAt": 1791875187403,
-    "updatedAt": 1791876157450
+    "updatedAt": 1791876159773
   }
 ]
