@@ -89,11 +89,17 @@
             "name": "建立投资账簿，记录每笔交易的理由和结果",
             "done": false,
             "doneAt": null
+          },
+          {
+            "id": "mv6csruyb02o2r",
+            "name": "执行止损纪律：个股亏10%止损，盈利15%-20%分批止盈；买入前写好入场价/止损位/目标位",
+            "done": false,
+            "doneAt": null
           }
         ]
       }
     ],
     "createdAt": 1791875187403,
-    "updatedAt": 1791876155122
+    "updatedAt": 1791876157450
   }
 ]
