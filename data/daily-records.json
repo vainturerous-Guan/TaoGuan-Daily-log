@@ -1,5 +1,32 @@
 [
   {
+    "id": "mv6b62mlei7vbh",
+    "date": "2026-10-13",
+    "summary": "工作事项告一段落，下午半摸鱼+思考接下来AI要做的事。",
+    "sleep": {
+      "bedTime": "2:00",
+      "wakeTime": "7:05"
+    },
+    "weight": {
+      "night": null,
+      "morning": null
+    },
+    "diet": {
+      "snacks": "中午零食若干：西藏炒酸奶一小袋、奶片两三个、黑松露海盐苏打饼干一小包（3片）、香辣鱼豆腐一包（一片）；中午加餐 manner 冰橙茉莉美式一大杯",
+      "meals": "早餐：小半碗家庭自制黄瓜肉丝炸酱面 + 一杯自制拿铁（150ml奶）"
+    },
+    "todayRecord": "",
+    "work": "工作事项告一段落，下午半摸鱼+思考接下来AI要做的事。",
+    "parenting": {
+      "life": "",
+      "lifeMindful": "",
+      "mindful": "",
+      "reflection": "昨晚看综艺到2:00才睡，需要改进。"
+    },
+    "createdAt": 1791873418701,
+    "updatedAt": 1791873418701
+  },
+  {
     "id": "mv6b56miu48e4c",
     "date": "2026-10-12",
     "summary": "",
@@ -243,30 +270,30 @@
     "updatedAt": 1789120127340
   },
   {
-    "id": "mv6b62mlei7vbh",
-    "createdAt": 1791873418701,
-    "updatedAt": 1791873418701,
-    "date": "2026-10-13",
-    "summary": "工作事项告一段落，下午半摸鱼+思考接下来AI要做的事。",
+    "id": "mv7kpe616sz7r0",
+    "createdAt": 1791949902841,
+    "updatedAt": 1791949902841,
+    "date": "2026-10-14",
+    "summary": "",
     "sleep": {
-      "bedTime": "2:00",
-      "wakeTime": "7:05"
+      "bedTime": "1:10",
+      "wakeTime": "7:15"
     },
     "weight": {
       "night": null,
       "morning": null
     },
     "diet": {
-      "snacks": "中午零食若干：西藏炒酸奶一小袋、奶片两三个、黑松露海盐苏打饼干一小包（3片）、香辣鱼豆腐一包（一片）；中午加餐 manner 冰橙茉莉美式一大杯",
-      "meals": "早餐：小半碗家庭自制黄瓜肉丝炸酱面 + 一杯自制拿铁（150ml奶）"
+      "snacks": "上午一杯无糖可乐",
+      "meals": "早餐：妈妈煮的鱼糕（约100g）+ 3颗包心鱼丸 + 一碗瘦肉菠菜汤 + 一个鸡蛋白；午餐：一个无抗溏心蛋 + 一片无边吐司配25g法兰希迷你布里奶酪。【截至午餐估算总热量约 500-560 千卡】"
     },
     "todayRecord": "",
-    "work": "工作事项告一段落，下午半摸鱼+思考接下来AI要做的事。",
+    "work": "",
     "parenting": {
       "life": "",
       "lifeMindful": "",
       "mindful": "",
-      "reflection": "昨晚看综艺到2:00才睡，需要改进。"
+      "reflection": ""
     }
   }
 ]
