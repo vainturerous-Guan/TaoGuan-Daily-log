@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>目标打卡 · Stay Real and fun</title>
-  <meta name="description" content="每日工作与生活打卡，长期计划分阶段推进。">
+  <meta name="description" content="每周工作与生活打卡，长期计划分阶段推进。">
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="css/style.css?v=20261013">
 </head>
@@ -27,16 +27,16 @@
     <h1 class="page-title">目标打卡</h1>
 
     <div class="page-tabs" role="tablist" aria-label="目标打卡页签">
-      <button type="button" class="page-tab" data-tab="checkin" aria-current="true">📝 每日打卡</button>
+      <button type="button" class="page-tab" data-tab="checkin" aria-current="true">📝 本周打卡</button>
       <button type="button" class="page-tab" data-tab="plans">🎯 长期计划</button>
       <button type="button" class="page-tab" data-tab="history">📋 打卡历史</button>
     </div>
 
-    <section class="tab-panel" id="panel-checkin" aria-label="每日打卡">
+    <section class="tab-panel" id="panel-checkin" aria-label="本周打卡">
 
     <section class="card form-card" aria-labelledby="today-title">
       <div class="today-head">
-        <h2 id="today-title" class="card-title">每日打卡</h2>
+        <h2 id="today-title" class="card-title">本周打卡</h2>
         <div class="today-date">
           <input type="date" id="checkin-date">
           <span class="weekday" id="checkin-weekday"></span>
@@ -45,20 +45,10 @@
       </div>
 
       <fieldset class="form-field checkin-group">
-        <legend>工作</legend>
-        <div class="focus-row">
-          <span class="focus-label">高效时间</span>
-          <div class="input-with-unit">
-            <input type="number" id="focus-hours" step="0.5" min="0" max="24" placeholder="0">
-            <span class="unit-label">小时</span>
-          </div>
-          <span class="focus-goal">目标 ≥ 3 小时</span>
-          <span class="focus-state" id="focus-state" hidden>✓ 达标</span>
-        </div>
-        <div class="sub-head">今日事项</div>
+        <legend>工作事项</legend>
         <ul id="work-tasks" class="check-list"></ul>
         <form id="work-task-form" class="inline-add-form">
-          <input type="text" id="work-task-input" placeholder="添加今日工作事项，回车保存" maxlength="100">
+          <input type="text" id="work-task-input" placeholder="添加本周工作事项，回车保存" maxlength="100">
           <button type="submit" class="btn btn-small">添加</button>
         </form>
       </fieldset>
@@ -94,7 +84,7 @@
 
     <section class="tab-panel" id="panel-history" aria-label="打卡历史" hidden>
       <div id="checkin-history" class="record-list"></div>
-      <p class="empty-hint" id="checkin-history-empty" hidden>还没有打卡记录，从今天的开始吧～</p>
+      <p class="empty-hint" id="checkin-history-empty" hidden>还没有打卡记录，从本周的开始吧～</p>
     </section>
   </main>
 
@@ -105,6 +95,6 @@
   <script src="js/config.js?v=20260914"></script>
   <script src="js/common.js?v=20260914"></script>
   <script src="js/storage.js?v=20260914"></script>
-  <script src="js/goals.js?v=20261009"></script>
+  <script src="js/goals.js?v=20261027"></script>
 </body>
 </html>

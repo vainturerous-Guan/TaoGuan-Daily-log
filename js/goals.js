@@ -5,7 +5,7 @@
 //                          stages:[{ id, name, manual:null|"pending"|"active"|"done",
 //                                    tasks:[{ id, name, done, doneAt }] }],
 //                          createdAt, updatedAt }
-//  data/plan-daily.json   每日打卡：{ date, focusHours(null|数字), workTasks:[{ id, name, done }],
+//  data/plan-daily.json   每周打卡（按日期 upsert，每日一条）：{ date, focusHours(历史兼容字段，已停用), workTasks:[{ id, name, done }],
 //                          habits:{ 习惯id:true }, createdAt, updatedAt }
 // 阶段状态：manual 有值优先；否则按子任务推导（全完成=done，有完成=active，否则pending）
 (function () {
@@ -16,7 +16,6 @@
     plans: "data/plan-long.json",
     daily: "data/plan-daily.json",
   };
-  const FOCUS_GOAL = 3; // 高效时间目标（小时）
   const STAGE_ICON = { pending: "○", active: "●", done: "✓" };
   const MANUAL_CYCLE = [null, "pending", "active", "done"];
 
@@ -149,7 +148,7 @@
     renderPlans();
   }
 
-  /* ---------- 今日打卡 ---------- */
+  /* ---------- 本周打卡 ---------- */
 
   function logOf(date, create) {
     let log = logs.find((l) => l.date === date);
@@ -212,14 +211,11 @@
     els.todayBadge.hidden = currentDate !== Common.todayStr();
 
     const log = logOf(currentDate, false);
-    if (document.activeElement !== els.focusHours) {
-      els.focusHours.value = log && log.focusHours != null ? log.focusHours : "";
-    }
 
-    // 今日工作事项
+    // 本周工作事项
     const workItems = log ? log.workTasks : [];
     if (!workItems.length) {
-      els.workTasks.innerHTML = '<li class="check-hint">还没有今日事项，在下面添加～</li>';
+      els.workTasks.innerHTML = '<li class="check-hint">还没有工作事项，在下面添加～</li>';
     } else {
       els.workTasks.innerHTML = workItems
         .map((t) =>
@@ -289,11 +285,7 @@
     const workDone = log ? log.workTasks.filter((t) => t.done).length : 0;
     const habitDone = log ? activeHabits.filter((h) => log.habits[h.id]).length : 0;
     const parts = ["工作事项 " + workDone + "/" + workTotal, "生活习惯 " + habitDone + "/" + activeHabits.length];
-    if (log && log.focusHours != null) {
-      parts.push("高效 " + log.focusHours + "h" + (log.focusHours >= FOCUS_GOAL ? " ✓ 达标" : ""));
-    }
-    els.summary.textContent = "今日完成：" + parts.join(" · ");
-    els.focusState.hidden = !(log && log.focusHours != null && log.focusHours >= FOCUS_GOAL);
+    els.summary.textContent = "本周完成：" + parts.join(" · ");
   }
 
   /* ---------- 长期计划 ---------- */
@@ -452,15 +444,6 @@
 
   /* ---------- 打卡历史 ---------- */
 
-  function focusCellHtml(log) {
-    if (log.focusHours == null) return '<span class="cell-empty">—</span>';
-    const ok = log.focusHours >= FOCUS_GOAL;
-    return (
-      Common.escapeHtml(String(log.focusHours)) + "h " +
-      (ok ? '<span class="focus-state">✓ 达标</span>' : "")
-    );
-  }
-
   function workCellHtml(log) {
     if (!log.workTasks.length) return '<span class="cell-empty">—</span>';
     const done = log.workTasks.filter((t) => t.done).length;
@@ -508,7 +491,6 @@
         return (
           '<tr data-date="' + Common.escapeHtml(log.date) + '">' +
           "<td>" + dateHtml + "</td>" +
-          "<td>" + focusCellHtml(log) + "</td>" +
           "<td>" + workCellHtml(log) + "</td>" +
           "<td>" + habitCellHtml(log) + "</td>" +
           '<td class="col-actions"><button type="button" class="btn btn-small" data-action="edit-log">编辑</button></td>' +
@@ -522,15 +504,15 @@
     wrap.innerHTML =
       '<table class="records-table checkin-table">' +
       "<colgroup>" +
-      '<col style="width:16%"><col style="width:15%"><col style="width:29%"><col style="width:30%"><col style="width:10%">' +
+      '<col style="width:18%"><col style="width:32%"><col style="width:32%"><col style="width:12%">' +
       "</colgroup>" +
-      "<thead><tr><th>日期</th><th>高效时间</th><th>工作事项</th><th>生活习惯</th><th>操作</th></tr></thead>" +
+      "<thead><tr><th>日期</th><th>工作事项</th><th>生活习惯</th><th>操作</th></tr></thead>" +
       "<tbody>" + rows + "</tbody>" +
       "</table>";
     els.historyList.appendChild(wrap);
   }
 
-  // 历史记录点编辑 → 回到每日打卡页签并载入该日期
+  // 历史记录点编辑 → 回到本周打卡页签并载入该日期
   function handleHistoryClick(e) {
     const btn = e.target.closest('button[data-action="edit-log"]');
     if (!btn) return;
@@ -543,21 +525,11 @@
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  /* ---------- 事件：今日打卡 ---------- */
+  /* ---------- 事件：本周打卡 ---------- */
 
   function handleDateChange() {
     currentDate = els.date.value || Common.todayStr();
     renderToday();
-  }
-
-  function handleFocusChange() {
-    const log = logOf(currentDate, true);
-    const v = parseFloat(els.focusHours.value);
-    log.focusHours = els.focusHours.value.trim() === "" || isNaN(v) ? null : Math.round(v * 10) / 10;
-    log.updatedAt = Date.now();
-    pruneLog(log);
-    persist("daily", logs);
-    updateTodayMeta();
   }
 
   function handleWorkTaskSubmit(e) {
@@ -891,8 +863,6 @@
     els.date = $("#checkin-date");
     els.weekday = $("#checkin-weekday");
     els.todayBadge = $("#today-badge");
-    els.focusHours = $("#focus-hours");
-    els.focusState = $("#focus-state");
     els.workTasks = $("#work-tasks");
     els.workTaskInput = $("#work-task-input");
     els.habitList = $("#habit-list");
@@ -914,7 +884,6 @@
     els.date.value = Common.todayStr();
 
     els.date.addEventListener("change", handleDateChange);
-    els.focusHours.addEventListener("change", handleFocusChange);
     $("#work-task-form").addEventListener("submit", handleWorkTaskSubmit);
     $("#habit-form").addEventListener("submit", handleHabitSubmit);
     els.workTasks.addEventListener("click", handleTodayClick);
