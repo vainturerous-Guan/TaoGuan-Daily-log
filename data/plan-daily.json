@@ -18,6 +18,7 @@
       "mu3p9fdja2pqnw": true,
       "mu3p9vh67iz7rq": true
     },
+    "wins": [],
     "createdAt": 1789538887451,
     "updatedAt": 1789617514408
   },
@@ -40,6 +41,7 @@
       "mu3p9vh67iz7rq": true,
       "mv0p6edyt3c5yu": true
     },
+    "wins": [],
     "createdAt": 1791533902298,
     "updatedAt": 1791595400815
   },
@@ -54,7 +56,22 @@
       }
     ],
     "habits": {},
+    "wins": [],
     "createdAt": 1791595627573,
     "updatedAt": 1791595627573
+  },
+  {
+    "date": "2026-10-30",
+    "focusHours": null,
+    "workTasks": [],
+    "habits": {},
+    "wins": [
+      {
+        "id": "mvup7u2daq01ll",
+        "name": "重启练琴，开始学到F大调音阶"
+      }
+    ],
+    "createdAt": 1793348203765,
+    "updatedAt": 1793348203765
   }
 ]
