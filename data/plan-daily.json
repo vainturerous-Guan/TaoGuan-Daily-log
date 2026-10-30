@@ -64,7 +64,9 @@
     "date": "2026-10-30",
     "focusHours": null,
     "workTasks": [],
-    "habits": {},
+    "habits": {
+      "mu3p9vh67iz7rq": true
+    },
     "wins": [
       {
         "id": "mvup7u2daq01ll",
@@ -80,6 +82,6 @@
       }
     ],
     "createdAt": 1793348203765,
-    "updatedAt": 1793348290825
+    "updatedAt": 1793348351275
   }
 ]
