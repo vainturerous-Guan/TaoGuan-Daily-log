@@ -1803,12 +1803,26 @@ main.main-wide {
 
 /* 打卡历史表 */
 .checkin-table {
-  min-width: 640px;
+  min-width: 720px;
 }
 
 .line-done {
   color: var(--text-soft);
   text-decoration: line-through;
+}
+
+/* 打卡页小节说明文字 */
+.check-hint-sm {
+  color: var(--text-soft);
+  font-size: 0.85rem;
+  margin: 0 0 0.4rem;
+  padding: 0 0.1rem;
+}
+
+/* 成就条目 */
+.win-icon {
+  flex-shrink: 0;
+  font-size: 0.95rem;
 }
 
 /* ===== 读书笔记 ===== */

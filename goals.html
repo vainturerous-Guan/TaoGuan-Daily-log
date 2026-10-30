@@ -6,7 +6,7 @@
   <title>目标打卡 · Stay Real and fun</title>
   <meta name="description" content="每周工作与生活打卡，长期计划分阶段推进。">
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="css/style.css?v=20261013">
+  <link rel="stylesheet" href="css/style.css?v=20261030">
 </head>
 <body>
   <header class="site-header">
@@ -14,8 +14,8 @@
       <a class="site-name" href="index.html">Stay Real and fun</a>
       <button class="nav-toggle" aria-label="展开导航" aria-expanded="false">☰</button>
       <ul class="nav-links">
-        <li><a href="daily.html">生活日常记录</a></li>
         <li><a href="goals.html" aria-current="page">目标打卡</a></li>
+        <li><a href="daily.html">生活日常记录</a></li>
         <li><a href="stocks.html">股票监控与分析</a></li>
         <li><a href="knowledge.html">知识点积累</a></li>
         <li><a href="reading.html">读书笔记</a></li>
@@ -54,16 +54,27 @@
       </fieldset>
 
       <fieldset class="form-field checkin-group">
-        <legend>生活</legend>
+        <legend>固定目标</legend>
+        <p class="check-hint-sm">小而稳赢的战线（如减糖喝白水、早睡、清理相册），每次打卡守住就打勾～</p>
         <ul id="habit-list" class="check-list"></ul>
         <form id="habit-form" class="inline-add-form">
-          <input type="text" id="habit-input" placeholder="新习惯，如：练琴" maxlength="20">
+          <input type="text" id="habit-input" placeholder="新固定目标，如：减糖喝白水" maxlength="20">
           <button type="submit" class="btn btn-small">添加</button>
         </form>
         <details class="archived-box" id="archived-box" hidden>
-          <summary>已归档习惯</summary>
+          <summary>已归档目标</summary>
           <ul id="archived-list" class="check-list"></ul>
         </details>
+      </fieldset>
+
+      <fieldset class="form-field checkin-group">
+        <legend>本周成就 · 已赢下的阵地</legend>
+        <p class="check-hint-sm">稳赢的极小行动，做成了就记一笔，复盘时回看激励自己～</p>
+        <ul id="win-list" class="check-list"></ul>
+        <form id="win-form" class="inline-add-form">
+          <input type="text" id="win-input" placeholder="成就，如：练琴重启，推进到F大调音阶" maxlength="50">
+          <button type="submit" class="btn btn-small">添加</button>
+        </form>
       </fieldset>
 
       <p class="today-summary" id="today-summary"></p>
@@ -95,6 +106,6 @@
   <script src="js/config.js?v=20260914"></script>
   <script src="js/common.js?v=20260914"></script>
   <script src="js/storage.js?v=20260914"></script>
-  <script src="js/goals.js?v=20261027"></script>
+  <script src="js/goals.js?v=20261030"></script>
 </body>
 </html>

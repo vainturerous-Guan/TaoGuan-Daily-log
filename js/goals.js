@@ -1,12 +1,12 @@
 // 目标打卡频道逻辑
 // 数据文件（均顶层数组，直接走 Storage.load/save(filePath)）：
-//  data/plan-habits.json  习惯清单：{ id, name, archived, createdAt, updatedAt }
+//  data/plan-habits.json  固定目标清单：{ id, name, archived, createdAt, updatedAt }
 //  data/plan-long.json    长期计划：{ id, name,
 //                          stages:[{ id, name, manual:null|"pending"|"active"|"done",
 //                                    tasks:[{ id, name, done, doneAt }] }],
 //                          createdAt, updatedAt }
 //  data/plan-daily.json   每周打卡（按日期 upsert，每日一条）：{ date, focusHours(历史兼容字段，已停用), workTasks:[{ id, name, done }],
-//                          habits:{ 习惯id:true }, createdAt, updatedAt }
+//                          habits:{ 目标id:true }, wins:[{ id, name }], createdAt, updatedAt }
 // 阶段状态：manual 有值优先；否则按子任务推导（全完成=done，有完成=active，否则pending）
 (function () {
   "use strict";
@@ -96,6 +96,7 @@
       if (habitsMap[k]) done[str(k)] = true;
     });
     const workTasks = Array.isArray(l.workTasks) ? l.workTasks : [];
+    const wins = Array.isArray(l.wins) ? l.wins : [];
     return {
       date: str(l.date),
       focusHours: numOrNull(l.focusHours),
@@ -103,6 +104,9 @@
         .filter((t) => t && typeof t === "object")
         .map((t) => ({ id: str(t.id) || newId(), name: str(t.name), done: !!t.done })),
       habits: done,
+      wins: wins
+        .filter((w) => w && typeof w === "object")
+        .map((w) => ({ id: str(w.id) || newId(), name: str(w.name) })),
       createdAt: numOrNull(l.createdAt) || Date.now(),
       updatedAt: numOrNull(l.updatedAt) || Date.now(),
     };
@@ -153,19 +157,19 @@
   function logOf(date, create) {
     let log = logs.find((l) => l.date === date);
     if (!log && create) {
-      log = { date: date, focusHours: null, workTasks: [], habits: {}, createdAt: Date.now(), updatedAt: Date.now() };
+      log = { date: date, focusHours: null, workTasks: [], habits: {}, wins: [], createdAt: Date.now(), updatedAt: Date.now() };
       logs.push(log);
     }
     return log;
   }
 
-  // 一条日志若三项全空，则从列表移除，避免产生空记录
+  // 一条日志若各类内容全空，则从列表移除，避免产生空记录
   function pruneLog(log) {
     if (!log) return;
     const empty =
-      log.focusHours == null &&
       !log.workTasks.length &&
-      !Object.keys(log.habits).length;
+      !Object.keys(log.habits).length &&
+      !log.wins.length;
     if (empty) {
       const idx = logs.indexOf(log);
       if (idx !== -1) logs.splice(idx, 1);
@@ -174,7 +178,7 @@
 
   function isEditing(kind, ids) {
     if (!editState || editState.kind !== kind) return false;
-    const keys = { habit: ["id"], "work-task": ["id"], plan: ["planId"], stage: ["planId", "stageId"], task: ["planId", "stageId", "taskId"] };
+    const keys = { habit: ["id"], "work-task": ["id"], win: ["id"], plan: ["planId"], stage: ["planId", "stageId"], task: ["planId", "stageId", "taskId"] };
     return keys[kind].every((k) => editState[k] === ids[k]);
   }
 
@@ -201,6 +205,25 @@
       '<button type="button" class="check-toggle" data-action="' + opts.toggleAction + '" aria-pressed="' + !!opts.done + '">✓</button>' +
       nameHtml +
       (opts.editing ? "" : '<span class="check-actions">' + opts.actionsHtml + "</span>") +
+      "</li>"
+    );
+  }
+
+  function winItemHtml(w) {
+    const editing = isEditing("win", { id: w.id });
+    const nameHtml = editing
+      ? editFormHtml("win", { id: w.id }, w.name, 50)
+      : '<span class="check-name">' + Common.escapeHtml(w.name) + "</span>";
+    return (
+      '<li class="check-item win-item" data-id="' + Common.escapeHtml(w.id) + '">' +
+      '<span class="win-icon" aria-hidden="true">🏆</span>' +
+      nameHtml +
+      (editing
+        ? ""
+        : '<span class="check-actions">' +
+          '<button type="button" class="mini-btn" data-action="edit-win">编辑</button>' +
+          '<button type="button" class="mini-btn" data-action="delete-win">删除</button>' +
+          "</span>") +
       "</li>"
     );
   }
@@ -236,11 +259,11 @@
         .join("");
     }
 
-    // 生活习惯（未归档 + 已归档）
+    // 固定目标（未归档 + 已归档）
     const activeHabits = habits.filter((h) => !h.archived);
     const archivedHabits = habits.filter((h) => h.archived);
     if (!activeHabits.length) {
-      els.habitList.innerHTML = '<li class="check-hint">还没有习惯，先添加一个吧～</li>';
+      els.habitList.innerHTML = '<li class="check-hint">还没有固定目标，先添加一个吧～</li>';
     } else {
       els.habitList.innerHTML = activeHabits
         .map((h) => {
@@ -275,6 +298,14 @@
       )
       .join("");
 
+    // 本周成就
+    const wins = log ? log.wins : [];
+    if (!wins.length) {
+      els.winList.innerHTML = '<li class="check-hint">还没有成就，做成了稳赢的小事就记一笔～</li>';
+    } else {
+      els.winList.innerHTML = wins.map(winItemHtml).join("");
+    }
+
     updateTodayMeta();
   }
 
@@ -284,7 +315,8 @@
     const workTotal = log ? log.workTasks.length : 0;
     const workDone = log ? log.workTasks.filter((t) => t.done).length : 0;
     const habitDone = log ? activeHabits.filter((h) => log.habits[h.id]).length : 0;
-    const parts = ["工作事项 " + workDone + "/" + workTotal, "生活习惯 " + habitDone + "/" + activeHabits.length];
+    const parts = ["工作事项 " + workDone + "/" + workTotal, "固定目标 " + habitDone + "/" + activeHabits.length];
+    if (log && log.wins && log.wins.length) parts.push("成就 " + log.wins.length + " 个");
     els.summary.textContent = "本周完成：" + parts.join(" · ");
   }
 
@@ -472,6 +504,14 @@
     return '<div class="clamp6">' + lines + "</div>";
   }
 
+  function winsCellHtml(log) {
+    if (!log.wins || !log.wins.length) return '<span class="cell-empty">—</span>';
+    const lines = log.wins
+      .map((w) => '<div class="cell-line">🏆 ' + Common.escapeHtml(w.name) + "</div>")
+      .join("");
+    return '<div class="clamp6" title="' + Common.escapeHtml(log.wins.map((w) => w.name).join("\n")) + '">' + lines + "</div>";
+  }
+
   function renderHistory() {
     els.historyList.querySelectorAll(".table-wrap").forEach((n) => n.remove());
     const list = logs.slice().sort((a, b) => (a.date < b.date ? 1 : -1));
@@ -493,6 +533,7 @@
           "<td>" + dateHtml + "</td>" +
           "<td>" + workCellHtml(log) + "</td>" +
           "<td>" + habitCellHtml(log) + "</td>" +
+          "<td>" + winsCellHtml(log) + "</td>" +
           '<td class="col-actions"><button type="button" class="btn btn-small" data-action="edit-log">编辑</button></td>' +
           "</tr>"
         );
@@ -504,9 +545,9 @@
     wrap.innerHTML =
       '<table class="records-table checkin-table">' +
       "<colgroup>" +
-      '<col style="width:18%"><col style="width:32%"><col style="width:32%"><col style="width:12%">' +
+      '<col style="width:16%"><col style="width:26%"><col style="width:22%"><col style="width:24%"><col style="width:12%">' +
       "</colgroup>" +
-      "<thead><tr><th>日期</th><th>工作事项</th><th>生活习惯</th><th>操作</th></tr></thead>" +
+      "<thead><tr><th>日期</th><th>工作事项</th><th>固定目标</th><th>本周成就</th><th>操作</th></tr></thead>" +
       "<tbody>" + rows + "</tbody>" +
       "</table>";
     els.historyList.appendChild(wrap);
@@ -556,6 +597,19 @@
     els.habitInput.focus();
   }
 
+  function handleWinSubmit(e) {
+    e.preventDefault();
+    const name = els.winInput.value.trim();
+    if (!name) return;
+    const log = logOf(currentDate, true);
+    log.wins.push({ id: newId(), name: name });
+    log.updatedAt = Date.now();
+    els.winInput.value = "";
+    persist("daily", logs);
+    renderToday();
+    els.winInput.focus();
+  }
+
   function handleTodayClick(e) {
     const btn = e.target.closest("[data-action]");
     if (!btn) return;
@@ -591,6 +645,22 @@
         renderToday();
         break;
       }
+      case "edit-win":
+        editState = { kind: "win", id: id };
+        renderToday();
+        break;
+      case "delete-win": {
+        const log = logOf(currentDate, false);
+        if (!log) return;
+        const idx = log.wins.findIndex((w) => w.id === id);
+        if (idx === -1) return;
+        log.wins.splice(idx, 1);
+        log.updatedAt = Date.now();
+        pruneLog(log);
+        persist("daily", logs);
+        renderToday();
+        break;
+      }
       case "toggle-habit": {
         const log = logOf(currentDate, true);
         if (log.habits[id]) delete log.habits[id];
@@ -618,7 +688,7 @@
       case "delete-habit": {
         const habit = habits.find((h) => h.id === id);
         if (!habit) return;
-        if (!window.confirm("确定删除习惯「" + habit.name + "」？（历史打卡记录不受影响）")) return;
+        if (!window.confirm("确定删除固定目标「" + habit.name + "」？（历史打卡记录不受影响）")) return;
         habits = habits.filter((h) => h.id !== id);
         persist("habits", habits);
         renderToday();
@@ -631,7 +701,7 @@
     }
   }
 
-  // 行内编辑提交（工作事项 + 习惯共用，表单 data-form="edit"）
+  // 行内编辑提交（工作事项 + 固定目标 + 成就共用，表单 data-form="edit"）
   function handleTodaySubmit(e) {
     const form = e.target.closest('form[data-form="edit"]');
     if (!form) return;
@@ -649,6 +719,10 @@
     if (kind === "work-task") {
       const log = logOf(currentDate, false);
       target = log && log.workTasks.find((t) => t.id === id);
+    }
+    if (kind === "win") {
+      const log = logOf(currentDate, false);
+      target = log && log.wins.find((w) => w.id === id);
     }
     if (!target) {
       editState = null;
@@ -867,6 +941,8 @@
     els.workTaskInput = $("#work-task-input");
     els.habitList = $("#habit-list");
     els.habitInput = $("#habit-input");
+    els.winList = $("#win-list");
+    els.winInput = $("#win-input");
     els.archivedBox = $("#archived-box");
     els.archivedList = $("#archived-list");
     els.summary = $("#today-summary");
@@ -886,10 +962,13 @@
     els.date.addEventListener("change", handleDateChange);
     $("#work-task-form").addEventListener("submit", handleWorkTaskSubmit);
     $("#habit-form").addEventListener("submit", handleHabitSubmit);
+    $("#win-form").addEventListener("submit", handleWinSubmit);
     els.workTasks.addEventListener("click", handleTodayClick);
     els.workTasks.addEventListener("submit", handleTodaySubmit);
     els.habitList.addEventListener("click", handleTodayClick);
     els.habitList.addEventListener("submit", handleTodaySubmit);
+    els.winList.addEventListener("click", handleTodayClick);
+    els.winList.addEventListener("submit", handleTodaySubmit);
     els.archivedList.addEventListener("click", handleTodayClick);
     els.addPlanBtn.addEventListener("click", handleAddPlan);
     els.planList.addEventListener("click", handlePlanClick);
