@@ -83,16 +83,9 @@
     "done": false,
     "completedAt": null,
     "summary": "",
-    "checkIns": [
-      {
-        "id": "mw4g18j9veosp3",
-        "date": "2026-11-06",
-        "note": "",
-        "createdAt": 1793937441141
-      }
-    ],
+    "checkIns": [],
     "createdAt": 1793936005244,
-    "updatedAt": 1793937441141
+    "updatedAt": 1793937444124
   },
   {
     "id": "1a1aeeb187cmig减肥",
