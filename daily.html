@@ -6,7 +6,7 @@
   <title>生活日常记录 · Stay Real and fun</title>
   <meta name="description" content="今日一句话总结、睡眠饮食、体重与每日记录。">
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="css/style.css?v=20261030">
+  <link rel="stylesheet" href="css/style.css?v=20261106b">
 </head>
 <body>
   <header class="site-header">
@@ -27,14 +27,14 @@
     <h1 class="page-title">生活日常记录</h1>
 
     <div class="page-tabs" role="tablist" aria-label="生活日常记录页签">
-      <button type="button" class="page-tab" data-tab="today" aria-current="true">✏️ 今日记录</button>
+      <button type="button" class="page-tab" data-tab="today" aria-current="true">✏️ 今日感悟</button>
       <button type="button" class="page-tab" data-tab="history">📚 全部历史记录</button>
     </div>
 
-    <section class="tab-panel" id="panel-today" aria-label="今日记录">
+    <section class="tab-panel" id="panel-today" aria-label="今日感悟">
 
     <section class="card form-card" aria-labelledby="form-title">
-      <h2 id="form-title" class="card-title">今日记录</h2>
+      <h2 id="form-title" class="card-title">今日感悟</h2>
       <form id="daily-form" novalidate>
         <div class="form-row date-row">
           <div class="form-field date-field">
@@ -42,91 +42,46 @@
             <input type="date" id="record-date" required>
             <span class="weekday" id="weekday-display"></span>
           </div>
-          <div class="form-field summary-field">
-            <label for="summary">今日一句话总结</label>
-            <input type="text" id="summary" placeholder="用一句话总结今天" maxlength="100">
-          </div>
         </div>
 
-        <fieldset class="form-field health-group">
-          <legend>健康</legend>
-          <div class="health-grid">
-            <div class="sub-group">
-              <div class="sub-head">睡眠</div>
-              <label for="bed-time">昨日入睡时间</label>
-              <input type="text" id="bed-time" placeholder="如 23:30">
-              <label for="wake-time">今早起床时间</label>
-              <input type="text" id="wake-time" placeholder="如 7:00">
-            </div>
-            <div class="sub-group">
-              <div class="sub-head">
-                体重
-                <span class="unit-toggle" role="group" aria-label="体重单位">
-                  <button type="button" data-unit="jin" class="active">斤</button><button type="button" data-unit="kg">公斤</button>
-                </span>
-              </div>
-              <label for="weight-night">睡前体重</label>
-              <div class="input-with-unit">
-                <input type="number" id="weight-night" step="0.1" min="0" placeholder="未填">
-                <span class="unit-label">斤</span>
-              </div>
-              <label for="weight-morning">早起体重</label>
-              <div class="input-with-unit">
-                <input type="number" id="weight-morning" step="0.1" min="0" placeholder="未填">
-                <span class="unit-label">斤</span>
-              </div>
-            </div>
-            <div class="sub-group">
-              <div class="sub-head">饮食</div>
-              <label for="diet-snacks">零食·饮料</label>
-              <textarea id="diet-snacks" rows="2" placeholder="如：下午一杯奶茶"></textarea>
-              <label for="diet-meals">正餐</label>
-              <textarea id="diet-meals" rows="2" placeholder="如：早餐包子豆浆，午餐食堂"></textarea>
-            </div>
-          </div>
-        </fieldset>
-
-        <div class="form-field">
-          <label for="today-record">今日记录（流水账/感悟）</label>
-          <textarea id="today-record" rows="4" placeholder="今天都做了什么、有什么感悟，都写在这里～"></textarea>
-        </div>
-
-        <div class="form-field">
-          <label for="work">个人工作完成情况</label>
-          <textarea id="work" rows="3" placeholder="今天的工作完成情况"></textarea>
-        </div>
-
-        <fieldset class="form-field parenting-group">
-          <legend>生活流水账</legend>
-          <label for="parenting-life">生活流水账</label>
-          <textarea id="parenting-life" rows="3" placeholder="生活琐事与陪娃情况"></textarea>
-          <label for="life-mindful">生活正念</label>
-          <textarea id="life-mindful" rows="2" placeholder="删照片、看书、练琴、读英文都要坚持，要记录。"></textarea>
-          <label for="parenting-mindful">育儿正念</label>
-          <textarea id="parenting-mindful" rows="2" placeholder="今天育儿中做得好的、值得保持的地方"></textarea>
-          <label for="parenting-reflection">反思与提升</label>
-          <textarea id="parenting-reflection" rows="2" placeholder="可以做得更好的地方"></textarea>
+        <fieldset class="form-field insights-group">
+          <legend>生活感悟</legend>
+          <p class="check-hint-sm">不一定每天有：小确幸、小情绪，或其他想先记下来、日后再整理的～</p>
+          <div id="insights-list"></div>
+          <button type="button" class="mini-btn" id="add-insight-btn">＋ 添加一条感悟</button>
         </fieldset>
 
         <div class="form-actions">
-          <button type="submit" class="btn btn-primary" id="submit-btn">保存记录</button>
+          <button type="submit" class="btn btn-primary" id="submit-btn">保存感悟</button>
           <button type="button" class="btn btn-ghost" id="cancel-edit-btn" hidden>取消编辑</button>
         </div>
       </form>
     </section>
 
     <section aria-labelledby="history-title">
-      <h2 id="history-title" class="card-title history-title">近5日记录</h2>
+      <div class="section-head">
+        <h2 id="history-title" class="card-title history-title">近5日记录</h2>
+        <span class="unit-toggle" role="group" aria-label="体重单位">
+          <button type="button" data-unit="jin" class="active">斤</button><button type="button" data-unit="kg">公斤</button>
+        </span>
+      </div>
       <div id="record-list" class="record-list">
-        <p class="empty-hint" id="empty-hint" hidden>近5日还没有记录，从今天的开始吧～</p>
+        <p class="empty-hint" id="empty-hint" hidden>近5日还没有感悟，从今天的开始吧～</p>
       </div>
     </section>
 
     </section>
 
     <section class="tab-panel" id="panel-history" aria-label="全部历史记录" hidden>
+      <div class="section-head">
+        <h2 class="card-title history-title">全部历史记录</h2>
+        <span class="unit-toggle" role="group" aria-label="体重单位">
+          <button type="button" data-unit="jin" class="active">斤</button><button type="button" data-unit="kg">公斤</button>
+        </span>
+      </div>
       <div id="history-list" class="record-list">
         <p class="empty-hint" id="history-empty" hidden>还没有记录，从今天的开始吧～</p>
+      </div>
       </div>
       <div class="pager" id="history-pager" hidden>
         <button type="button" class="mini-btn" data-page="prev">‹ 上一页</button>
@@ -140,9 +95,9 @@
     <p>© <span class="current-year">2026</span> Stay Real and fun · 用心记录每一天</p>
   </footer>
 
-  <script src="js/config.js?v=20260911"></script>
-  <script src="js/common.js?v=20260911"></script>
-  <script src="js/storage.js?v=20260911"></script>
-  <script src="js/daily.js?v=20260917"></script>
+  <script src="js/config.js?v=20261106b"></script>
+  <script src="js/common.js?v=20261106b"></script>
+  <script src="js/storage.js?v=20261106b"></script>
+  <script src="js/daily.js?v=20261106b"></script>
 </body>
 </html>
