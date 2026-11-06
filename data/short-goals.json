@@ -16,5 +16,16 @@
     ],
     "createdAt": 1793936414772,
     "updatedAt": 1793936655400
+  },
+  {
+    "id": "mw4flkvp0gb84n",
+    "name": "端到端测试目标",
+    "archived": false,
+    "done": false,
+    "completedAt": null,
+    "summary": "",
+    "checkIns": [],
+    "createdAt": 1793936710645,
+    "updatedAt": 1793936710645
   }
 ]
