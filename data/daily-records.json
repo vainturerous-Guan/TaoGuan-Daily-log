@@ -1,5 +1,39 @@
 [
   {
+    "id": "mw4fxjhw7trogu",
+    "date": "2026-11-06",
+    "summary": "",
+    "sleep": {
+      "bedTime": "",
+      "wakeTime": ""
+    },
+    "weight": {
+      "night": null,
+      "morning": null
+    },
+    "diet": {
+      "snacks": "",
+      "meals": ""
+    },
+    "todayRecord": "",
+    "work": "",
+    "parenting": {
+      "life": "",
+      "lifeMindful": "",
+      "mindful": "",
+      "reflection": ""
+    },
+    "insights": [
+      {
+        "id": "mw4g1f48iny5zf",
+        "type": "happy",
+        "text": "端到端验证测试"
+      }
+    ],
+    "createdAt": 1793937268724,
+    "updatedAt": 1793937450039
+  },
+  {
     "id": "mv7kpe616sz7r0",
     "date": "2026-10-14",
     "summary": "",
@@ -306,39 +340,5 @@
     "insights": [],
     "createdAt": 1789120127340,
     "updatedAt": 1789120127340
-  },
-  {
-    "id": "mw4fxjhw7trogu",
-    "date": "2026-11-06",
-    "summary": "",
-    "sleep": {
-      "bedTime": "",
-      "wakeTime": ""
-    },
-    "weight": {
-      "night": null,
-      "morning": null
-    },
-    "diet": {
-      "snacks": "",
-      "meals": ""
-    },
-    "todayRecord": "",
-    "work": "",
-    "parenting": {
-      "life": "",
-      "lifeMindful": "",
-      "mindful": "",
-      "reflection": ""
-    },
-    "insights": [
-      {
-        "id": "mw4fxj7nyicv10",
-        "type": "happy",
-        "text": "端到端验证测试"
-      }
-    ],
-    "createdAt": 1793937268724,
-    "updatedAt": 1793937268724
   }
 ]
