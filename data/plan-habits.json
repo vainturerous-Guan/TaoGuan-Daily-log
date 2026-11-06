@@ -130,8 +130,15 @@
     "done": false,
     "completedAt": null,
     "summary": "",
-    "checkIns": [],
+    "checkIns": [
+      {
+        "id": "mw4qlr27y6g1yi",
+        "date": "2026-11-06",
+        "note": "不饿，想吃肉酱拌面+鱼丸，最终控制住没吃肉酱拌面，事实仅鱼丸也很满足！",
+        "createdAt": 1793955194431
+      }
+    ],
     "createdAt": 1793955138865,
-    "updatedAt": 1793955138865
+    "updatedAt": 1793955194432
   }
 ]
