@@ -7,11 +7,18 @@
         "id": "mu4xa4uulbmgtf",
         "name": "第一阶段：学习基础知识",
         "manual": null,
-        "tasks": []
+        "tasks": [
+          {
+            "id": "mw4cwuimc4blh2",
+            "name": "了解股票基础技术指标（K线，MACD，boll线）",
+            "done": false,
+            "doneAt": null
+          }
+        ]
       }
     ],
     "createdAt": 1789538792353,
-    "updatedAt": 1791875941021
+    "updatedAt": 1793932197501
   },
   {
     "id": "mv6c7zd7908x38",
