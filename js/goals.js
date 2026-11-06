@@ -1,18 +1,20 @@
 // 目标打卡频道逻辑
 // 数据文件（均顶层数组，直接走 Storage.load/save(filePath)）：
-//  data/plan-habits.json  固定目标清单：{ id, name, archived, createdAt, updatedAt }
-//  data/plan-long.json    长期计划：{ id, name,
+//  data/plan-habits.json  固定习惯：{ id, name, archived, done, false, completedAt: null, summary: "",
+//                          checkIns:[{ id, date, note, createdAt }], createdAt, updatedAt }
+//  data/short-goals.json  短期目标：结构同上；done/completedAt 用于「完成目标」，summary 为完成情况总结
+//  data/plan-long.json    长期计划：{ id, name, done, completedAt,
 //                          stages:[{ id, name, manual:null|"pending"|"active"|"done",
-//                                    tasks:[{ id, name, done, doneAt }] }],
+//                                    tasks:[{ id, name, done, doneAt, summary }] }],
 //                          createdAt, updatedAt }
-//  data/plan-daily.json   每周打卡（按日期 upsert，每日一条）：{ date, focusHours(历史兼容字段，已停用), workTasks:[{ id, name, done }],
-//                          habits:{ 目标id:true }, wins:[{ id, name }], createdAt, updatedAt }
+//  data/plan-daily.json   旧版按日期打卡（2026-11 改版后只读展示，不再写入）
 // 阶段状态：manual 有值优先；否则按子任务推导（全完成=done，有完成=active，否则pending）
 (function () {
   "use strict";
 
   const FILES = {
     habits: "data/plan-habits.json",
+    short: "data/short-goals.json",
     plans: "data/plan-long.json",
     daily: "data/plan-daily.json",
   };
@@ -20,11 +22,11 @@
   const MANUAL_CYCLE = [null, "pending", "active", "done"];
 
   let habits = [];
+  let shortGoals = [];
   let plans = [];
-  let logs = [];
-  let currentDate = Common.todayStr();
+  let logs = []; // 旧版打卡记录（只读）
   const expandedStages = new Set(); // "planId/stageId"
-  let editState = null; // { kind:"habit"|"work-task"|"plan"|"stage"|"task", id, planId, stageId, taskId }
+  let editState = null; // { kind, ... } kind: "item-name"|"checkin"|"plan"|"stage"|"task"
   let addForm = null;   // { kind:"plan"|"stage"|"task", planId, stageId }
 
   const els = {};
@@ -48,14 +50,27 @@
 
   /* ---------- 归一化（防脏数据） ---------- */
 
-  function normalizeHabit(h) {
-    if (!h || typeof h !== "object") return null;
+  // 固定习惯 / 短期目标共用条目结构
+  function normalizeItem(it) {
+    if (!it || typeof it !== "object") return null;
+    const checkIns = Array.isArray(it.checkIns) ? it.checkIns : [];
     return {
-      id: str(h.id) || newId(),
-      name: str(h.name),
-      archived: !!h.archived,
-      createdAt: numOrNull(h.createdAt) || Date.now(),
-      updatedAt: numOrNull(h.updatedAt) || Date.now(),
+      id: str(it.id) || newId(),
+      name: str(it.name),
+      archived: !!it.archived,
+      done: !!it.done,
+      completedAt: numOrNull(it.completedAt),
+      summary: str(it.summary),
+      checkIns: checkIns
+        .filter((c) => c && typeof c === "object")
+        .map((c) => ({
+          id: str(c.id) || newId(),
+          date: str(c.date),
+          note: str(c.note),
+          createdAt: numOrNull(c.createdAt) || Date.now(),
+        })),
+      createdAt: numOrNull(it.createdAt) || Date.now(),
+      updatedAt: numOrNull(it.updatedAt) || Date.now(),
     };
   }
 
@@ -65,6 +80,8 @@
     return {
       id: str(p.id) || newId(),
       name: str(p.name),
+      done: !!p.done,
+      completedAt: numOrNull(p.completedAt),
       stages: stages
         .filter((s) => s && typeof s === "object")
         .map((s) => {
@@ -80,6 +97,7 @@
                 name: str(t.name),
                 done: !!t.done,
                 doneAt: numOrNull(t.doneAt),
+                summary: str(t.summary),
               })),
           };
         }),
@@ -90,25 +108,16 @@
 
   function normalizeLog(l) {
     if (!l || typeof l !== "object") return null;
-    const habitsMap = l.habits && typeof l.habits === "object" && !Array.isArray(l.habits) ? l.habits : {};
-    const done = {};
-    Object.keys(habitsMap).forEach((k) => {
-      if (habitsMap[k]) done[str(k)] = true;
-    });
     const workTasks = Array.isArray(l.workTasks) ? l.workTasks : [];
     const wins = Array.isArray(l.wins) ? l.wins : [];
     return {
       date: str(l.date),
-      focusHours: numOrNull(l.focusHours),
       workTasks: workTasks
         .filter((t) => t && typeof t === "object")
         .map((t) => ({ id: str(t.id) || newId(), name: str(t.name), done: !!t.done })),
-      habits: done,
       wins: wins
         .filter((w) => w && typeof w === "object")
         .map((w) => ({ id: str(w.id) || newId(), name: str(w.name) })),
-      createdAt: numOrNull(l.createdAt) || Date.now(),
-      updatedAt: numOrNull(l.updatedAt) || Date.now(),
     };
   }
 
@@ -123,8 +132,20 @@
     return action + "失败：网络连不上 GitHub，请检查网络后重试";
   }
 
-  function persist(key, arr) {
-    return Storage.save(arr, FILES[key]).catch((err) => {
+  function itemsOf(file) {
+    return file === "short" ? shortGoals : habits;
+  }
+
+  function persistItems(file) {
+    return Storage.save(itemsOf(file), FILES[file]).catch((err) => {
+      console.error("保存失败", err);
+      Common.toast(friendlyError(err, "保存"), "error");
+      return reloadAll(true);
+    });
+  }
+
+  function persistPlans() {
+    return Storage.save(plans, FILES.plans).catch((err) => {
       console.error("保存失败", err);
       Common.toast(friendlyError(err, "保存"), "error");
       return reloadAll(true);
@@ -135,189 +156,158 @@
     try {
       const raw = await Promise.all([
         Storage.load(FILES.habits),
+        Storage.load(FILES.short),
         Storage.load(FILES.plans),
         Storage.load(FILES.daily),
       ]);
-      habits = raw[0].map(normalizeHabit).filter(Boolean);
-      plans = raw[1].map(normalizePlan).filter(Boolean);
-      logs = raw[2].map(normalizeLog).filter(Boolean);
+      habits = raw[0].map(normalizeItem).filter(Boolean);
+      shortGoals = raw[1].map(normalizeItem).filter(Boolean);
+      plans = raw[2].map(normalizePlan).filter(Boolean);
+      logs = raw[3].map(normalizeLog).filter(Boolean);
     } catch (err) {
       console.error("读取打卡数据失败", err);
       habits = [];
+      shortGoals = [];
       plans = [];
       logs = [];
       if (!silent) Common.toast(friendlyError(err, "读取"), "error");
     }
-    renderToday();
+    renderItems("habits");
+    renderItems("short");
     renderPlans();
+    renderLegacy();
   }
 
-  /* ---------- 本周打卡 ---------- */
-
-  function logOf(date, create) {
-    let log = logs.find((l) => l.date === date);
-    if (!log && create) {
-      log = { date: date, focusHours: null, workTasks: [], habits: {}, wins: [], createdAt: Date.now(), updatedAt: Date.now() };
-      logs.push(log);
-    }
-    return log;
-  }
-
-  // 一条日志若各类内容全空，则从列表移除，避免产生空记录
-  function pruneLog(log) {
-    if (!log) return;
-    const empty =
-      !log.workTasks.length &&
-      !Object.keys(log.habits).length &&
-      !log.wins.length;
-    if (empty) {
-      const idx = logs.indexOf(log);
-      if (idx !== -1) logs.splice(idx, 1);
-    }
-  }
+  /* ---------- 固定习惯 / 短期目标共用卡片 ---------- */
 
   function isEditing(kind, ids) {
     if (!editState || editState.kind !== kind) return false;
-    const keys = { habit: ["id"], "work-task": ["id"], win: ["id"], plan: ["planId"], stage: ["planId", "stageId"], task: ["planId", "stageId", "taskId"] };
-    return keys[kind].every((k) => editState[k] === ids[k]);
+    const keys = { "item-name": ["file", "id"], checkin: ["file", "itemId", "checkinId"] };
+    return (keys[kind] || []).every((k) => editState[k] === ids[k]);
   }
 
-  function editFormHtml(kind, ref, value, maxLength) {
-    const attrs = Object.keys(ref)
-      .map((k) => ' data-' + k.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase()) + '="' + Common.escapeHtml(String(ref[k])) + '"')
-      .join("");
+  // 全部打卡按时间倒序（日期倒序，同日按录入倒序）
+  function sortedCheckIns(item) {
+    return item.checkIns.slice().sort((a, b) => {
+      if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+      return (b.createdAt || 0) - (a.createdAt || 0);
+    });
+  }
+
+  function checkInItemHtml(file, item, c, withDelete) {
+    if (isEditing("checkin", { file: file, itemId: item.id, checkinId: c.id })) {
+      return (
+        '<li class="checkin-item">' +
+        '<form class="edit-row" data-form="edit-checkin" data-file="' + file + '" data-item-id="' + Common.escapeHtml(item.id) + '" data-checkin-id="' + Common.escapeHtml(c.id) + '">' +
+        '<input type="date" class="checkin-edit-date" value="' + Common.escapeHtml(c.date) + '">' +
+        '<input type="text" class="checkin-edit-note" value="' + Common.escapeHtml(c.note) + '" placeholder="备注（可选）" maxlength="50">' +
+        '<button type="submit" class="btn btn-small">保存</button>' +
+        '<button type="button" class="mini-btn" data-action="cancel-edit">取消</button>' +
+        "</form></li>"
+      );
+    }
     return (
-      '<form class="edit-row" data-form="edit" data-edit-kind="' + kind + '"' + attrs + '>' +
-      '<input type="text" value="' + Common.escapeHtml(value) + '" maxlength="' + maxLength + '">' +
-      '<button type="submit" class="btn btn-small">保存</button>' +
-      '<button type="button" class="mini-btn" data-action="cancel-edit">取消</button>' +
-      "</form>"
+      '<li class="checkin-item" data-checkin-id="' + Common.escapeHtml(c.id) + '">' +
+      '<span class="checkin-mark">✓</span>' +
+      '<span class="checkin-date">' + Common.escapeHtml(c.date) + "</span>" +
+      (c.note ? '<span class="checkin-note">' + Common.escapeHtml(c.note) + "</span>" : "") +
+      '<span class="check-actions">' +
+      '<button type="button" class="mini-btn" data-action="edit-checkin">编辑</button>' +
+      (withDelete ? '<button type="button" class="mini-btn" data-action="delete-checkin">删除</button>' : "") +
+      "</span></li>"
     );
   }
 
-  function checkItemHtml(opts) {
-    // opts: { liClass, liAttr, done, toggleAction, name, editing, editKind, editRef, maxLength, actionsHtml }
-    const nameHtml = opts.editing
-      ? editFormHtml(opts.editKind, opts.editRef, opts.name, opts.maxLength || 50)
-      : '<span class="check-name">' + Common.escapeHtml(opts.name) + "</span>";
+  function goalCardHtml(file, item) {
+    const editingName = isEditing("item-name", { file: file, id: item.id });
+    const nameHtml = editingName
+      ? '<form class="edit-row" data-form="edit-item" data-file="' + file + '" data-item-id="' + Common.escapeHtml(item.id) + '">' +
+        '<input type="text" value="' + Common.escapeHtml(item.name) + '" maxlength="30">' +
+        '<button type="submit" class="btn btn-small">保存</button>' +
+        '<button type="button" class="mini-btn" data-action="cancel-edit">取消</button>' +
+        "</form>"
+      : '<span class="goal-name">' + Common.escapeHtml(item.name) + "</span>";
+
+    const sorted = sortedCheckIns(item);
+    const recent = sorted.slice(0, 3);
+    const recentHtml = recent.length
+      ? recent.map((c) => checkInItemHtml(file, item, c, false)).join("")
+      : '<li class="check-hint">还没有打卡，做成一次就点一次～</li>';
+
+    const allHtml = sorted.length
+      ? sorted.map((c) => checkInItemHtml(file, item, c, true)).join("")
+      : '<li class="check-hint">还没有打卡记录</li>';
+
+    // 短期目标：总结 + 完成/重新打开
+    let summaryRow = "";
+    if (file === "short") {
+      const actionBtn = item.done
+        ? '<button type="button" class="mini-btn" data-action="reopen-goal">重新打开</button>'
+        : item.summary.trim()
+          ? '<button type="button" class="mini-btn" data-action="complete-goal">完成目标</button>'
+          : "";
+      summaryRow =
+        '<div class="goal-summary-row">' +
+        '<input type="text" class="goal-summary-input" data-field="summary" value="' + Common.escapeHtml(item.summary) + '" placeholder="目标完成情况总结（可选，填写后可点「完成目标」）" maxlength="100">' +
+        actionBtn +
+        "</div>";
+    }
+
     return (
-      '<li class="check-item' + (opts.done ? " done" : "") + '"' + opts.liAttr + ">" +
-      '<button type="button" class="check-toggle" data-action="' + opts.toggleAction + '" aria-pressed="' + !!opts.done + '">✓</button>' +
+      '<div class="record-item goal-card' + (item.done ? " is-done" : "") + '" data-file="' + file + '" data-id="' + Common.escapeHtml(item.id) + '">' +
+      '<div class="goal-head">' +
       nameHtml +
-      (opts.editing ? "" : '<span class="check-actions">' + opts.actionsHtml + "</span>") +
-      "</li>"
+      (!editingName
+        ? '<span class="goal-count">已完成 ' + item.checkIns.length + " 次</span>" +
+          '<span class="goal-actions">' +
+          (item.archived
+            ? '<button type="button" class="mini-btn" data-action="restore-item">恢复</button>' +
+              '<button type="button" class="mini-btn" data-action="delete-item">删除</button>'
+            : '<button type="button" class="mini-btn" data-action="edit-item-name">编辑</button>' +
+              '<button type="button" class="mini-btn" data-action="archive-item">归档</button>') +
+          "</span>"
+        : "") +
+      "</div>" +
+      '<form class="goal-checkin-form" data-form="checkin" data-file="' + file + '" data-item-id="' + Common.escapeHtml(item.id) + '">' +
+      '<input type="date" class="checkin-date-input" value="' + Common.escapeHtml(Common.todayStr()) + '">' +
+      '<input type="text" class="checkin-note-input" placeholder="内容备注，如：练琴第X章（可选）" maxlength="50">' +
+      '<button type="submit" class="btn btn-small">✓ 打卡</button>' +
+      "</form>" +
+      '<ul class="checkin-recent">' + recentHtml + "</ul>" +
+      '<details class="checkin-all">' +
+      "<summary>全部打卡记录（" + item.checkIns.length + " 次）</summary>" +
+      '<ul class="checkin-all-list">' + allHtml + "</ul>" +
+      "</details>" +
+      summaryRow +
+      "</div>"
     );
   }
 
-  function winItemHtml(w) {
-    const editing = isEditing("win", { id: w.id });
-    const nameHtml = editing
-      ? editFormHtml("win", { id: w.id }, w.name, 50)
-      : '<span class="check-name">' + Common.escapeHtml(w.name) + "</span>";
-    return (
-      '<li class="check-item win-item" data-id="' + Common.escapeHtml(w.id) + '">' +
-      '<span class="win-icon" aria-hidden="true">🏆</span>' +
-      nameHtml +
-      (editing
-        ? ""
-        : '<span class="check-actions">' +
-          '<button type="button" class="mini-btn" data-action="edit-win">编辑</button>' +
-          '<button type="button" class="mini-btn" data-action="delete-win">删除</button>' +
-          "</span>") +
-      "</li>"
-    );
-  }
+  function renderItems(file) {
+    const items = itemsOf(file);
+    const active = items.filter((it) => !it.archived && !it.done);
+    const archived = items.filter((it) => it.archived);
+    const done = items.filter((it) => !it.archived && it.done);
 
-  function renderToday() {
-    els.date.value = currentDate;
-    els.weekday.textContent = Common.weekdayOf(currentDate);
-    els.todayBadge.hidden = currentDate !== Common.todayStr();
+    const listEl = file === "short" ? els.shortCards : els.habitCards;
+    const emptyEl = file === "short" ? els.shortEmpty : els.habitEmpty;
+    const archBox = file === "short" ? els.shortArchBox : els.habitArchBox;
+    const archEl = file === "short" ? els.shortArch : els.habitArch;
+    const doneBox = els.shortDoneBox;
+    const doneEl = els.shortDone;
+    const doneCount = els.shortDoneCount;
 
-    const log = logOf(currentDate, false);
+    if (emptyEl) emptyEl.hidden = active.length > 0;
+    listEl.innerHTML = active.map((it) => goalCardHtml(file, it)).join("");
 
-    // 本周工作事项
-    const workItems = log ? log.workTasks : [];
-    if (!workItems.length) {
-      els.workTasks.innerHTML = '<li class="check-hint">还没有工作事项，在下面添加～</li>';
-    } else {
-      els.workTasks.innerHTML = workItems
-        .map((t) =>
-          checkItemHtml({
-            liAttr: ' data-id="' + Common.escapeHtml(t.id) + '"',
-            done: t.done,
-            toggleAction: "toggle-work-task",
-            name: t.name,
-            editing: isEditing("work-task", { id: t.id }),
-            editKind: "work-task",
-            editRef: { id: t.id },
-            maxLength: 100,
-            actionsHtml:
-              '<button type="button" class="mini-btn" data-action="edit-work-task">编辑</button>' +
-              '<button type="button" class="mini-btn" data-action="delete-work-task">删除</button>',
-          })
-        )
-        .join("");
+    archBox.hidden = !archived.length;
+    archEl.innerHTML = archived.map((it) => goalCardHtml(file, it)).join("");
+
+    if (file === "short") {
+      doneBox.hidden = !done.length;
+      doneCount.textContent = String(done.length);
+      doneEl.innerHTML = done.map((it) => goalCardHtml(file, it)).join("");
     }
-
-    // 固定目标（未归档 + 已归档）
-    const activeHabits = habits.filter((h) => !h.archived);
-    const archivedHabits = habits.filter((h) => h.archived);
-    if (!activeHabits.length) {
-      els.habitList.innerHTML = '<li class="check-hint">还没有固定目标，先添加一个吧～</li>';
-    } else {
-      els.habitList.innerHTML = activeHabits
-        .map((h) => {
-          const done = !!(log && log.habits[h.id]);
-          return checkItemHtml({
-            liAttr: ' data-id="' + Common.escapeHtml(h.id) + '"',
-            done: done,
-            toggleAction: "toggle-habit",
-            name: h.name,
-            editing: isEditing("habit", { id: h.id }),
-            editKind: "habit",
-            editRef: { id: h.id },
-            maxLength: 20,
-            actionsHtml:
-              '<button type="button" class="mini-btn" data-action="edit-habit">编辑</button>' +
-              '<button type="button" class="mini-btn" data-action="archive-habit">归档</button>',
-          });
-        })
-        .join("");
-    }
-
-    els.archivedBox.hidden = !archivedHabits.length;
-    els.archivedList.innerHTML = archivedHabits
-      .map(
-        (h) =>
-          '<li class="check-item" data-id="' + Common.escapeHtml(h.id) + '">' +
-          '<span class="check-name">' + Common.escapeHtml(h.name) + "</span>" +
-          '<span class="check-actions">' +
-          '<button type="button" class="mini-btn" data-action="restore-habit">恢复</button>' +
-          '<button type="button" class="mini-btn" data-action="delete-habit">删除</button>' +
-          "</span></li>"
-      )
-      .join("");
-
-    // 本周成就
-    const wins = log ? log.wins : [];
-    if (!wins.length) {
-      els.winList.innerHTML = '<li class="check-hint">还没有成就，做成了稳赢的小事就记一笔～</li>';
-    } else {
-      els.winList.innerHTML = wins.map(winItemHtml).join("");
-    }
-
-    updateTodayMeta();
-  }
-
-  function updateTodayMeta() {
-    const log = logOf(currentDate, false);
-    const activeHabits = habits.filter((h) => !h.archived);
-    const workTotal = log ? log.workTasks.length : 0;
-    const workDone = log ? log.workTasks.filter((t) => t.done).length : 0;
-    const habitDone = log ? activeHabits.filter((h) => log.habits[h.id]).length : 0;
-    const parts = ["工作事项 " + workDone + "/" + workTotal, "固定目标 " + habitDone + "/" + activeHabits.length];
-    if (log && log.wins && log.wins.length) parts.push("成就 " + log.wins.length + " 个");
-    els.summary.textContent = "本周完成：" + parts.join(" · ");
   }
 
   /* ---------- 长期计划 ---------- */
@@ -357,6 +347,8 @@
     const nameHtml = editing
       ? editFormHtml("task", { planId: plan.id, stageId: stage.id, taskId: task.id }, task.name, 50)
       : '<span class="check-name">' + Common.escapeHtml(task.name) + "</span>";
+    const summaryInput =
+      '<input type="text" class="task-summary-input" data-field="task-summary" data-plan-id="' + Common.escapeHtml(plan.id) + '" data-stage-id="' + Common.escapeHtml(stage.id) + '" data-task-id="' + Common.escapeHtml(task.id) + '" value="' + Common.escapeHtml(task.summary) + '" placeholder="完成情况总结（可选，失焦或回车保存）" maxlength="100">';
     return (
       '<li class="check-item task-item' + (task.done ? " done" : "") + '" data-task-id="' + Common.escapeHtml(task.id) + '">' +
       '<button type="button" class="check-toggle" data-action="toggle-task" aria-pressed="' + !!task.done + '">✓</button>' +
@@ -367,7 +359,21 @@
           '<button type="button" class="mini-btn" data-action="edit-task">编辑</button>' +
           '<button type="button" class="mini-btn" data-action="delete-task">删除</button>' +
           "</span>") +
+      summaryInput +
       "</li>"
+    );
+  }
+
+  function editFormHtml(kind, ref, value, maxLength) {
+    const attrs = Object.keys(ref)
+      .map((k) => ' data-' + k.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase()) + '="' + Common.escapeHtml(String(ref[k])) + '"')
+      .join("");
+    return (
+      '<form class="edit-row" data-form="edit" data-edit-kind="' + kind + '"' + attrs + '>' +
+      '<input type="text" value="' + Common.escapeHtml(value) + '" maxlength="' + maxLength + '">' +
+      '<button type="submit" class="btn btn-small">保存</button>' +
+      '<button type="button" class="mini-btn" data-action="cancel-edit">取消</button>' +
+      "</form>"
     );
   }
 
@@ -413,9 +419,15 @@
     );
   }
 
+  function isEditingPlanKind(kind, ids) {
+    if (!editState || editState.kind !== kind) return false;
+    const keys = { plan: ["planId"], stage: ["planId", "stageId"], task: ["planId", "stageId", "taskId"] };
+    return (keys[kind] || []).every((k) => editState[k] === ids[k]);
+  }
+
   function planCardHtml(plan) {
     const doneStages = plan.stages.filter((s) => stageStatus(s) === "done").length;
-    const editing = isEditing("plan", { planId: plan.id });
+    const editing = isEditingPlanKind("plan", { planId: plan.id });
     const nameHtml = editing
       ? editFormHtml("plan", { planId: plan.id }, plan.name, 50)
       : '<span class="plan-name">' + Common.escapeHtml(plan.name) + "</span>";
@@ -432,17 +444,26 @@
       body += '<button type="button" class="mini-btn" data-action="add-stage">＋ 添加阶段</button>';
     }
 
+    const doneBadge = plan.done
+      ? '<span class="plan-progress plan-done-badge">✅ 已完成 ' + new Date(plan.completedAt).toLocaleDateString("sv-SE") + "</span>"
+      : "";
+    const headActions = editing
+      ? ""
+      : '<span class="plan-actions">' +
+        (plan.done
+          ? '<button type="button" class="mini-btn" data-action="reopen-plan">重新打开</button>'
+          : '<button type="button" class="mini-btn" data-action="complete-plan">完成计划</button>') +
+        '<button type="button" class="mini-btn" data-action="edit-plan">编辑</button>' +
+        '<button type="button" class="mini-btn" data-action="delete-plan">删除</button>' +
+        "</span>";
+
     return (
-      '<div class="record-item plan-card" data-plan-id="' + Common.escapeHtml(plan.id) + '">' +
+      '<div class="record-item plan-card' + (plan.done ? " is-done" : "") + '" data-plan-id="' + Common.escapeHtml(plan.id) + '">' +
       '<div class="plan-head">' +
       nameHtml +
+      doneBadge +
       '<span class="plan-progress">' + (plan.stages.length ? "✓ " + doneStages + "/" + plan.stages.length + " 阶段" : "未开始") + "</span>" +
-      (editing
-        ? ""
-        : '<span class="plan-actions">' +
-          '<button type="button" class="mini-btn" data-action="edit-plan">编辑</button>' +
-          '<button type="button" class="mini-btn" data-action="delete-plan">删除</button>' +
-          "</span>") +
+      headActions +
       "</div>" +
       body +
       "</div>"
@@ -451,30 +472,24 @@
 
   function renderPlans() {
     els.planList.querySelectorAll(".plan-card").forEach((n) => n.remove());
-    els.planEmpty.hidden = plans.length > 0;
+    els.planDone.querySelectorAll(".plan-card").forEach((n) => n.remove());
+
+    const active = plans.filter((p) => !p.done);
+    const done = plans.filter((p) => p.done);
+    els.planEmpty.hidden = active.length > 0;
+    els.planDoneBox.hidden = !done.length;
+    els.planDoneCount.textContent = String(done.length);
 
     let html = "";
     if (addForm && addForm.kind === "plan") {
       html += '<div class="record-item plan-card">' + addFormHtml("add-plan", {}, "计划名称，如：跟着AI学投资") + "</div>";
     }
-    html += plans.map(planCardHtml).join("");
+    html += active.map(planCardHtml).join("");
     els.planList.insertAdjacentHTML("beforeend", html);
+    els.planDone.insertAdjacentHTML("beforeend", done.map(planCardHtml).join(""));
   }
 
-  /* ---------- 页签 ---------- */
-
-  function activateTab(name) {
-    els.tabs.forEach((tab) => {
-      if (tab.dataset.tab === name) tab.setAttribute("aria-current", "true");
-      else tab.removeAttribute("aria-current");
-    });
-    els.panels.checkin.hidden = name !== "checkin";
-    els.panels.plans.hidden = name !== "plans";
-    els.panels.history.hidden = name !== "history";
-    if (name === "history") renderHistory();
-  }
-
-  /* ---------- 打卡历史 ---------- */
+  /* ---------- 旧版打卡记录（只读） ---------- */
 
   function workCellHtml(log) {
     if (!log.workTasks.length) return '<span class="cell-empty">—</span>';
@@ -492,18 +507,6 @@
     return '<div class="clamp6" title="' + Common.escapeHtml(log.workTasks.map((t) => (t.done ? "✓ " : "○ ") + t.name).join("\n")) + '">' + lines + "</div>";
   }
 
-  function habitCellHtml(log) {
-    const activeHabits = habits.filter((h) => !h.archived);
-    const doneHabits = activeHabits.filter((h) => log.habits[h.id]);
-    if (!activeHabits.length) return '<span class="cell-empty">—</span>';
-    const lines =
-      '<div class="cell-line"><span class="cell-label">' + doneHabits.length + "/" + activeHabits.length + " 完成</span></div>" +
-      doneHabits
-        .map((h) => '<div class="cell-line">✓ ' + Common.escapeHtml(h.name) + "</div>")
-        .join("");
-    return '<div class="clamp6">' + lines + "</div>";
-  }
-
   function winsCellHtml(log) {
     if (!log.wins || !log.wins.length) return '<span class="cell-empty">—</span>';
     const lines = log.wins
@@ -512,15 +515,12 @@
     return '<div class="clamp6" title="' + Common.escapeHtml(log.wins.map((w) => w.name).join("\n")) + '">' + lines + "</div>";
   }
 
-  function renderHistory() {
-    els.historyList.querySelectorAll(".table-wrap").forEach((n) => n.remove());
-    const list = logs.slice().sort((a, b) => (a.date < b.date ? 1 : -1));
-    if (!list.length) {
-      els.historyEmpty.hidden = false;
-      return;
-    }
-    els.historyEmpty.hidden = true;
+  function renderLegacy() {
+    els.legacyBox.hidden = !logs.length;
+    els.legacyRecords.querySelectorAll(".table-wrap").forEach((n) => n.remove());
+    if (!logs.length) return;
 
+    const list = logs.slice().sort((a, b) => (a.date < b.date ? 1 : -1));
     const today = Common.todayStr();
     const rows = list
       .map((log) => {
@@ -529,12 +529,10 @@
           (log.date === today ? ' <span class="badge-today">今天</span>' : "") + "</div>" +
           '<div class="cell-weekday">' + Common.escapeHtml(Common.weekdayOf(log.date)) + "</div>";
         return (
-          '<tr data-date="' + Common.escapeHtml(log.date) + '">' +
+          "<tr>" +
           "<td>" + dateHtml + "</td>" +
           "<td>" + workCellHtml(log) + "</td>" +
-          "<td>" + habitCellHtml(log) + "</td>" +
           "<td>" + winsCellHtml(log) + "</td>" +
-          '<td class="col-actions"><button type="button" class="btn btn-small" data-action="edit-log">编辑</button></td>' +
           "</tr>"
         );
       })
@@ -545,201 +543,213 @@
     wrap.innerHTML =
       '<table class="records-table checkin-table">' +
       "<colgroup>" +
-      '<col style="width:16%"><col style="width:26%"><col style="width:22%"><col style="width:24%"><col style="width:12%">' +
+      '<col style="width:18%"><col style="width:42%"><col style="width:40%">' +
       "</colgroup>" +
-      "<thead><tr><th>日期</th><th>工作事项</th><th>固定目标</th><th>本周成就</th><th>操作</th></tr></thead>" +
+      "<thead><tr><th>日期</th><th>工作事项</th><th>本周成就</th></tr></thead>" +
       "<tbody>" + rows + "</tbody>" +
       "</table>";
-    els.historyList.appendChild(wrap);
+    els.legacyRecords.appendChild(wrap);
   }
 
-  // 历史记录点编辑 → 回到本周打卡页签并载入该日期
-  function handleHistoryClick(e) {
-    const btn = e.target.closest('button[data-action="edit-log"]');
-    if (!btn) return;
-    const tr = btn.closest("tr");
-    const date = tr && tr.dataset.date;
-    if (!date) return;
-    activateTab("checkin");
-    els.date.value = date;
-    handleDateChange();
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  /* ---------- 页签 ---------- */
+
+  function activateTab(name) {
+    els.tabs.forEach((tab) => {
+      if (tab.dataset.tab === name) tab.setAttribute("aria-current", "true");
+      else tab.removeAttribute("aria-current");
+    });
+    els.panels.habits.hidden = name !== "habits";
+    els.panels.short.hidden = name !== "short";
+    els.panels.plans.hidden = name !== "plans";
   }
 
-  /* ---------- 事件：本周打卡 ---------- */
+  /* ---------- 事件：习惯 / 短期目标 ---------- */
 
-  function handleDateChange() {
-    currentDate = els.date.value || Common.todayStr();
-    renderToday();
+  function findItem(file, id) {
+    return itemsOf(file).find((it) => it.id === id);
   }
 
-  function handleWorkTaskSubmit(e) {
+  function handleItemAdd(e) {
     e.preventDefault();
-    const name = els.workTaskInput.value.trim();
+    const isShort = e.target.id === "short-form";
+    const input = isShort ? els.shortInput : els.habitInput;
+    const name = input.value.trim();
     if (!name) return;
-    const log = logOf(currentDate, true);
-    log.workTasks.push({ id: newId(), name: name, done: false });
-    log.updatedAt = Date.now();
-    els.workTaskInput.value = "";
-    persist("daily", logs);
-    renderToday();
-    els.workTaskInput.focus();
+    const now = Date.now();
+    itemsOf(isShort ? "short" : "habits").push({
+      id: newId(),
+      name: name.slice(0, 30),
+      archived: false,
+      done: false,
+      completedAt: null,
+      summary: "",
+      checkIns: [],
+      createdAt: now,
+      updatedAt: now,
+    });
+    input.value = "";
+    persistItems(isShort ? "short" : "habits");
+    renderItems(isShort ? "short" : "habits");
+    input.focus();
   }
 
-  function handleHabitSubmit(e) {
-    e.preventDefault();
-    const name = els.habitInput.value.trim();
-    if (!name) return;
-    habits.push({ id: newId(), name: name, archived: false, createdAt: Date.now(), updatedAt: Date.now() });
-    els.habitInput.value = "";
-    persist("habits", habits);
-    renderToday();
-    els.habitInput.focus();
-  }
-
-  function handleWinSubmit(e) {
-    e.preventDefault();
-    const name = els.winInput.value.trim();
-    if (!name) return;
-    const log = logOf(currentDate, true);
-    log.wins.push({ id: newId(), name: name });
-    log.updatedAt = Date.now();
-    els.winInput.value = "";
-    persist("daily", logs);
-    renderToday();
-    els.winInput.focus();
-  }
-
-  function handleTodayClick(e) {
+  // 习惯/目标卡片区（含归档区、已完成区）的点击委托
+  function handleItemClick(e) {
     const btn = e.target.closest("[data-action]");
     if (!btn) return;
     const action = btn.dataset.action;
-    const li = btn.closest("[data-id]");
-    const id = li && li.dataset.id;
+    const card = btn.closest("[data-file][data-id]");
+    const file = card && card.dataset.file;
+    const id = card && card.dataset.id;
+    if (!file || !id) return;
+    const item = findItem(file, id);
+    if (!item) return;
+
+    const checkinEl = btn.closest("[data-checkin-id]");
+    const checkinId = checkinEl && checkinEl.dataset.checkinId;
 
     switch (action) {
-      case "toggle-work-task": {
-        const log = logOf(currentDate, true);
-        const task = log.workTasks.find((t) => t.id === id);
-        if (!task) return;
-        task.done = !task.done;
-        log.updatedAt = Date.now();
-        pruneLog(log);
-        persist("daily", logs);
-        renderToday();
+      case "edit-item-name":
+        editState = { kind: "item-name", file: file, id: id };
+        renderItems(file);
+        break;
+      case "archive-item":
+      case "restore-item":
+        item.archived = action === "archive-item";
+        item.updatedAt = Date.now();
+        persistItems(file);
+        renderItems(file);
+        break;
+      case "delete-item":
+        if (!window.confirm("确定删除「" + item.name + "」？其打卡记录将一并删除。")) return;
+        if (file === "short") shortGoals = shortGoals.filter((it) => it.id !== id);
+        else habits = habits.filter((it) => it.id !== id);
+        persistItems(file);
+        renderItems(file);
+        break;
+      case "edit-checkin":
+        editState = { kind: "checkin", file: file, itemId: id, checkinId: checkinId };
+        renderItems(file);
+        break;
+      case "delete-checkin": {
+        const c = item.checkIns.find((x) => x.id === checkinId);
+        if (!c) return;
+        if (!window.confirm("确定删除这条打卡（" + c.date + (c.note ? " " + c.note : "") + "）？")) return;
+        item.checkIns = item.checkIns.filter((x) => x.id !== checkinId);
+        item.updatedAt = Date.now();
+        persistItems(file);
+        renderItems(file);
         break;
       }
-      case "edit-work-task":
-        editState = { kind: "work-task", id: id };
-        renderToday();
+      case "complete-goal":
+        if (!item.summary.trim()) return;
+        if (!window.confirm("确定完成目标「" + item.name + "」？")) return;
+        item.done = true;
+        item.completedAt = Date.now();
+        item.updatedAt = Date.now();
+        persistItems(file);
+        renderItems(file);
         break;
-      case "delete-work-task": {
-        const log = logOf(currentDate, false);
-        if (!log) return;
-        const idx = log.workTasks.findIndex((t) => t.id === id);
-        if (idx === -1) return;
-        log.workTasks.splice(idx, 1);
-        log.updatedAt = Date.now();
-        pruneLog(log);
-        persist("daily", logs);
-        renderToday();
+      case "reopen-goal":
+        item.done = false;
+        item.completedAt = null;
+        item.updatedAt = Date.now();
+        persistItems(file);
+        renderItems(file);
         break;
-      }
-      case "edit-win":
-        editState = { kind: "win", id: id };
-        renderToday();
-        break;
-      case "delete-win": {
-        const log = logOf(currentDate, false);
-        if (!log) return;
-        const idx = log.wins.findIndex((w) => w.id === id);
-        if (idx === -1) return;
-        log.wins.splice(idx, 1);
-        log.updatedAt = Date.now();
-        pruneLog(log);
-        persist("daily", logs);
-        renderToday();
-        break;
-      }
-      case "toggle-habit": {
-        const log = logOf(currentDate, true);
-        if (log.habits[id]) delete log.habits[id];
-        else log.habits[id] = true;
-        log.updatedAt = Date.now();
-        pruneLog(log);
-        persist("daily", logs);
-        renderToday();
-        break;
-      }
-      case "edit-habit":
-        editState = { kind: "habit", id: id };
-        renderToday();
-        break;
-      case "archive-habit":
-      case "restore-habit": {
-        const habit = habits.find((h) => h.id === id);
-        if (!habit) return;
-        habit.archived = action === "archive-habit";
-        habit.updatedAt = Date.now();
-        persist("habits", habits);
-        renderToday();
-        break;
-      }
-      case "delete-habit": {
-        const habit = habits.find((h) => h.id === id);
-        if (!habit) return;
-        if (!window.confirm("确定删除固定目标「" + habit.name + "」？（历史打卡记录不受影响）")) return;
-        habits = habits.filter((h) => h.id !== id);
-        persist("habits", habits);
-        renderToday();
-        break;
-      }
       case "cancel-edit":
         editState = null;
-        renderToday();
+        renderItems(file);
         break;
     }
   }
 
-  // 行内编辑提交（工作事项 + 固定目标 + 成就共用，表单 data-form="edit"）
-  function handleTodaySubmit(e) {
-    const form = e.target.closest('form[data-form="edit"]');
+  // 习惯/目标卡片区的表单提交（打卡 / 改名 / 改打卡）
+  function handleItemSubmit(e) {
+    const form = e.target.closest("form[data-form]");
     if (!form) return;
+    const kind = form.dataset.form;
+    if (kind !== "checkin" && kind !== "edit-item" && kind !== "edit-checkin") return;
     e.preventDefault();
-    const input = form.querySelector("input");
-    const name = input.value.trim();
-    if (!name) {
-      Common.toast("名称不能为空", "error");
+    const file = form.dataset.file;
+    const item = file && findItem(file, form.dataset.itemId);
+    if (!item) return;
+
+    if (kind === "checkin") {
+      const dateInput = form.querySelector(".checkin-date-input");
+      const noteInput = form.querySelector(".checkin-note-input");
+      const date = dateInput.value || Common.todayStr();
+      item.checkIns.push({ id: newId(), date: date, note: noteInput.value.trim(), createdAt: Date.now() });
+      item.updatedAt = Date.now();
+      noteInput.value = "";
+      dateInput.value = Common.todayStr();
+      persistItems(file);
+      renderItems(file);
       return;
     }
-    const kind = form.dataset.editKind;
-    const id = form.dataset.id;
-    let target = null;
-    if (kind === "habit") target = habits.find((h) => h.id === id);
-    if (kind === "work-task") {
-      const log = logOf(currentDate, false);
-      target = log && log.workTasks.find((t) => t.id === id);
-    }
-    if (kind === "win") {
-      const log = logOf(currentDate, false);
-      target = log && log.wins.find((w) => w.id === id);
-    }
-    if (!target) {
+
+    if (kind === "edit-item") {
+      const name = form.querySelector("input").value.trim();
+      if (!name) {
+        Common.toast("名称不能为空", "error");
+        return;
+      }
+      item.name = name.slice(0, 30);
+      item.updatedAt = Date.now();
       editState = null;
-      renderToday();
+      persistItems(file);
+      renderItems(file);
       return;
     }
-    target.name = kind === "habit" ? name.slice(0, 20) : name;
-    if (kind === "habit") {
-      target.updatedAt = Date.now();
-      persist("habits", habits);
-    } else {
-      const log = logOf(currentDate, false);
-      if (log) log.updatedAt = Date.now();
-      persist("daily", logs);
+
+    if (kind === "edit-checkin") {
+      const c = item.checkIns.find((x) => x.id === form.dataset.checkinId);
+      if (!c) {
+        editState = null;
+        renderItems(file);
+        return;
+      }
+      const date = form.querySelector(".checkin-edit-date").value || c.date;
+      const note = form.querySelector(".checkin-edit-note").value.trim();
+      c.date = date;
+      c.note = note;
+      item.updatedAt = Date.now();
+      editState = null;
+      persistItems(file);
+      renderItems(file);
     }
-    editState = null;
-    renderToday();
+  }
+
+  // 短期目标总结 / 长期计划任务总结：失焦或回车保存
+  function handleSummarySave(e) {
+    const input = e.target.closest("input[data-field]");
+    if (!input) return;
+    const field = input.dataset.field;
+
+    if (field === "summary") {
+      const card = input.closest("[data-file][data-id]");
+      const item = card && findItem(card.dataset.file, card.dataset.id);
+      if (!item) return;
+      const value = input.value.trim();
+      if (value === item.summary) return;
+      item.summary = value;
+      item.updatedAt = Date.now();
+      persistItems(card.dataset.file);
+      renderItems(card.dataset.file);
+      return;
+    }
+
+    if (field === "task-summary") {
+      const found = findStage(input.dataset.planId, input.dataset.stageId);
+      const task = found.stage && found.stage.tasks.find((t) => t.id === input.dataset.taskId);
+      if (!task) return;
+      const value = input.value.trim();
+      if (value === task.summary) return;
+      task.summary = value;
+      if (found.plan) found.plan.updatedAt = Date.now();
+      persistPlans();
+      Common.toast("已保存");
+    }
   }
 
   /* ---------- 事件：长期计划 ---------- */
@@ -771,6 +781,27 @@
         editState = { kind: "plan", planId: planId };
         renderPlans();
         break;
+      case "complete-plan": {
+        const plan = findPlan(planId);
+        if (!plan) return;
+        if (!window.confirm("确定完成计划「" + plan.name + "」？")) return;
+        plan.done = true;
+        plan.completedAt = Date.now();
+        plan.updatedAt = Date.now();
+        persistPlans();
+        renderPlans();
+        break;
+      }
+      case "reopen-plan": {
+        const plan = findPlan(planId);
+        if (!plan) return;
+        plan.done = false;
+        plan.completedAt = null;
+        plan.updatedAt = Date.now();
+        persistPlans();
+        renderPlans();
+        break;
+      }
       case "delete-plan": {
         const plan = findPlan(planId);
         if (!plan) return;
@@ -779,7 +810,7 @@
         expandedStages.forEach((k) => {
           if (k.indexOf(planId + "/") === 0) expandedStages.delete(k);
         });
-        persist("plans", plans);
+        persistPlans();
         renderPlans();
         break;
       }
@@ -813,7 +844,7 @@
         found.stage.manual = MANUAL_CYCLE[(idx + 1) % MANUAL_CYCLE.length];
         const plan = findPlan(planId);
         if (plan) plan.updatedAt = Date.now();
-        persist("plans", plans);
+        persistPlans();
         renderPlans();
         break;
       }
@@ -830,7 +861,7 @@
         plan.stages = plan.stages.filter((s) => s.id !== stageId);
         plan.updatedAt = Date.now();
         expandedStages.delete(planId + "/" + stageId);
-        persist("plans", plans);
+        persistPlans();
         renderPlans();
         break;
       }
@@ -841,7 +872,7 @@
         task.done = !task.done;
         task.doneAt = task.done ? Date.now() : null;
         if (found.plan) found.plan.updatedAt = Date.now();
-        persist("plans", plans);
+        persistPlans();
         renderPlans();
         break;
       }
@@ -860,7 +891,7 @@
         if (!window.confirm("确定删除任务「" + task.name + "」？")) return;
         found.stage.tasks = found.stage.tasks.filter((t) => t.id !== taskId);
         if (found.plan) found.plan.updatedAt = Date.now();
-        persist("plans", plans);
+        persistPlans();
         renderPlans();
         break;
       }
@@ -876,6 +907,7 @@
     if (!form) return;
     e.preventDefault();
     const kind = form.dataset.form;
+    if (kind !== "edit" && kind !== "add-plan" && kind !== "add-stage" && kind !== "add-task") return;
     const input = form.querySelector("input");
     const name = input.value.trim();
     const now = Date.now();
@@ -904,7 +936,7 @@
         }
       }
       editState = null;
-      persist("plans", plans);
+      persistPlans();
       renderPlans();
       return;
     }
@@ -914,7 +946,7 @@
       return;
     }
     if (kind === "add-plan") {
-      plans.push({ id: newId(), name: name, stages: [], createdAt: now, updatedAt: now });
+      plans.push({ id: newId(), name: name, done: false, completedAt: null, stages: [], createdAt: now, updatedAt: now });
     } else if (kind === "add-stage") {
       const plan = findPlan(form.dataset.planId);
       if (!plan) return;
@@ -923,58 +955,63 @@
     } else if (kind === "add-task") {
       const found = findStage(form.dataset.planId, form.dataset.stageId);
       if (!found.stage) return;
-      found.stage.tasks.push({ id: newId(), name: name, done: false, doneAt: null });
+      found.stage.tasks.push({ id: newId(), name: name, done: false, doneAt: null, summary: "" });
       if (found.plan) found.plan.updatedAt = now;
     }
     addForm = null;
-    persist("plans", plans);
+    persistPlans();
     renderPlans();
   }
 
   /* ---------- 初始化 ---------- */
 
   function cacheEls() {
-    els.date = $("#checkin-date");
-    els.weekday = $("#checkin-weekday");
-    els.todayBadge = $("#today-badge");
-    els.workTasks = $("#work-tasks");
-    els.workTaskInput = $("#work-task-input");
-    els.habitList = $("#habit-list");
+    els.habitCards = $("#habit-cards");
+    els.habitEmpty = $("#habit-empty");
+    els.habitArchBox = $("#habit-archived-box");
+    els.habitArch = $("#habit-archived");
     els.habitInput = $("#habit-input");
-    els.winList = $("#win-list");
-    els.winInput = $("#win-input");
-    els.archivedBox = $("#archived-box");
-    els.archivedList = $("#archived-list");
-    els.summary = $("#today-summary");
+    els.shortCards = $("#short-cards");
+    els.shortEmpty = $("#short-empty");
+    els.shortArchBox = $("#short-archived-box");
+    els.shortArch = $("#short-archived");
+    els.shortInput = $("#short-input");
+    els.shortDoneBox = $("#short-done-box");
+    els.shortDone = $("#short-done");
+    els.shortDoneCount = $("#short-done-count");
+    els.legacyBox = $("#legacy-box");
+    els.legacyRecords = $("#legacy-records");
     els.planList = $("#plan-list");
     els.planEmpty = $("#plan-empty");
+    els.planDoneBox = $("#plan-done-box");
+    els.planDone = $("#plan-done");
+    els.planDoneCount = $("#plan-done-count");
     els.addPlanBtn = $("#add-plan-btn");
     els.tabs = Array.from(document.querySelectorAll(".page-tab"));
-    els.panels = { checkin: $("#panel-checkin"), plans: $("#panel-plans"), history: $("#panel-history") };
-    els.historyList = $("#checkin-history");
-    els.historyEmpty = $("#checkin-history-empty");
+    els.panels = { habits: $("#panel-habits"), short: $("#panel-short"), plans: $("#panel-plans") };
   }
 
   function init() {
     cacheEls();
-    els.date.value = Common.todayStr();
 
-    els.date.addEventListener("change", handleDateChange);
-    $("#work-task-form").addEventListener("submit", handleWorkTaskSubmit);
-    $("#habit-form").addEventListener("submit", handleHabitSubmit);
-    $("#win-form").addEventListener("submit", handleWinSubmit);
-    els.workTasks.addEventListener("click", handleTodayClick);
-    els.workTasks.addEventListener("submit", handleTodaySubmit);
-    els.habitList.addEventListener("click", handleTodayClick);
-    els.habitList.addEventListener("submit", handleTodaySubmit);
-    els.winList.addEventListener("click", handleTodayClick);
-    els.winList.addEventListener("submit", handleTodaySubmit);
-    els.archivedList.addEventListener("click", handleTodayClick);
+    $("#habit-form").addEventListener("submit", handleItemAdd);
+    $("#short-form").addEventListener("submit", handleItemAdd);
+    document.addEventListener("click", handleItemClick);
+    document.addEventListener("submit", handleItemSubmit);
+    document.addEventListener("change", handleSummarySave);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && e.target.matches && e.target.matches("input.task-summary-input, input.goal-summary-input")) {
+        handleSummarySave(e);
+        e.target.blur();
+      }
+    });
+
     els.addPlanBtn.addEventListener("click", handleAddPlan);
     els.planList.addEventListener("click", handlePlanClick);
+    els.planDone.addEventListener("click", handlePlanClick);
     els.planList.addEventListener("submit", handlePlanSubmit);
+    els.planDone.addEventListener("submit", handlePlanSubmit);
     els.tabs.forEach((tab) => tab.addEventListener("click", () => activateTab(tab.dataset.tab)));
-    els.historyList.addEventListener("click", handleHistoryClick);
 
     reloadAll(false);
   }
