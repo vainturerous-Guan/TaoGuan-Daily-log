@@ -667,19 +667,23 @@ function getPriceUnit(code) {
 }
 
 // ==================== 渲染持仓 ====================
+// 现价/市值/盈亏用实时行情计算（成本、数量等持仓数据仍来自数据区，由另一端维护）
 function renderPortfolio(results) {
     const html = results.map((d, i) => {
         const info = PORTFOLIO[i];
-        if (d._error) {
+        if (!d || d._error) {
             return `<tr><td><div class="stock-name">${info.name}</div><div class="stock-code">${info.code}</div></td><td colspan="4" style="color:#94a3b8">获取失败</td></tr>`;
         }
-        const profit = info.refProfit;
-        const profitPct = info.refProfitPct;
+        const unit = getPriceUnit(info.code);
+        const cur = d.f43 / unit;
+        const marketValue = cur * info.qty;
+        const profit = (cur - info.costPrice) * info.qty;
+        const profitPct = info.costPrice > 0 ? (cur - info.costPrice) / info.costPrice * 100 : 0;
         const tradeCount = TRADES.filter(t => t.code === info.code).length;
         return `<tr>
             <td>
                 <div class="stock-name">${info.name} <span style="color:#94a3b8;font-weight:normal">${info.code}</span></div>
-                <div style="font-size:14px;font-weight:600;margin-top:4px">${info.marketValue.toFixed(2)}</div>
+                <div style="font-size:14px;font-weight:600;margin-top:4px">${marketValue.toFixed(2)}</div>
             </td>
             <td>
                 <div class="${cls(profit)}">${profit >= 0 ? '+' : ''}${profit.toFixed(2)}</div>
@@ -691,7 +695,7 @@ function renderPortfolio(results) {
             </td>
             <td>
                 <div style="color:#64748b">${info.costPrice.toFixed(3)}</div>
-                <div class="price ${cls(profitPct)}" style="margin-top:2px">${info.curPrice.toFixed(3)}</div>
+                <div class="price ${cls(profitPct)}" style="margin-top:2px">${cur.toFixed(3)}</div>
             </td>
             <td>
                 <button class="refresh-btn" style="padding:4px 12px; font-size:12px;" onclick="openTrades('${info.code}', '${info.name}')">📋 交易明细${tradeCount > 0 ? ' (' + tradeCount + ')' : ''}</button>

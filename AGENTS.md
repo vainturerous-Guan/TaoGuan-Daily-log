@@ -28,6 +28,7 @@
   - 📊 股票监控 = iframe 内嵌 `stock-monitor.html`（独立页面，数据自给）；iframe 高度自适应内容（js/stocks.js 里 ResizeObserver 实现），整页由外层滚动，无框内滚动条；弹窗打开时外层自动对齐 iframe 顶部、关闭恢复滚动位置
   - 📚 交易体系学习：数据存 `data/stock-learning.json`（结构 `{ id, date, name, point, createdAt, updatedAt }`，按日期+时间倒序）
 - `stock-monitor.html` 交易明细弹窗：按买入轮次（FIFO 先买先卖）展示，卖出份额按轮次拆分挂载，每轮右侧显示总盈亏；无法匹配的卖出归「—」组
+- `stock-monitor.html` 持仓明细：现价/市值/参考盈亏由实时行情结合数据区的成本、数量实时计算（每次「立即查询」刷新）；成本价、持仓数量等持仓数据本身仍由另一端维护
 - `stock-monitor.html` 行情数据源：腾讯行情 `qt.gtimg.cn`（单请求批量、支持跨域）为主源，东方财富 `push2.eastmoney.com` 为兜底（整批失败或个别标的缺失时逐只回退）；两者统一归一化为东财字段结构（f43/f60/f170/f48）供渲染使用
 
 ## 技术约定
