@@ -12,13 +12,16 @@
             "id": "mw4cwuimc4blh2",
             "name": "了解股票基础技术指标（K线，MACD，boll线）",
             "done": false,
-            "doneAt": null
+            "doneAt": null,
+            "summary": ""
           }
         ]
       }
     ],
     "createdAt": 1789538792353,
-    "updatedAt": 1793932197501
+    "updatedAt": 1793932197501,
+    "done": false,
+    "completedAt": null
   },
   {
     "id": "mv6c7zd7908x38",
@@ -33,31 +36,36 @@
             "id": "mv6csbomsk7wv6",
             "name": "掌握基础规则：T+1、涨跌停限制、1手=100股",
             "done": false,
-            "doneAt": null
+            "doneAt": null,
+            "summary": ""
           },
           {
             "id": "mv6csdh97ftsc9",
             "name": "学会查核心估值指标：PE、PB、ROE、股息率（理杏仁/东方财富Choice）",
             "done": false,
-            "doneAt": null
+            "doneAt": null,
+            "summary": ""
           },
           {
             "id": "mv6csf9yukldvr",
             "name": "读《聪明的投资者》",
             "done": false,
-            "doneAt": null
+            "doneAt": null,
+            "summary": ""
           },
           {
             "id": "mv6csh2jlnjqty",
             "name": "读《彼得·林奇的成功投资》",
             "done": false,
-            "doneAt": null
+            "doneAt": null,
+            "summary": ""
           },
           {
             "id": "mv6csiv7ba8rhw",
             "name": "读《定投十年财务自由》",
             "done": false,
-            "doneAt": null
+            "doneAt": null,
+            "summary": ""
           }
         ]
       },
@@ -70,13 +78,15 @@
             "id": "mv6csknwhkl1iz",
             "name": "券商APP练习下单、撤单，体验T+1",
             "done": false,
-            "doneAt": null
+            "doneAt": null,
+            "summary": ""
           },
           {
             "id": "mv6csmh5u6b36u",
             "name": "每天10分钟看大盘涨跌和板块热点，培养盘感",
             "done": false,
-            "doneAt": null
+            "doneAt": null,
+            "summary": ""
           }
         ]
       },
@@ -89,30 +99,36 @@
             "id": "mv6cso9s5l7qvo",
             "name": "从ETF开始首笔交易",
             "done": false,
-            "doneAt": null
+            "doneAt": null,
+            "summary": ""
           },
           {
             "id": "mv6csq2bqjvuoa",
             "name": "建立投资账簿，记录每笔交易的理由和结果",
             "done": false,
-            "doneAt": null
+            "doneAt": null,
+            "summary": ""
           },
           {
             "id": "mv6csruyb02o2r",
             "name": "执行止损纪律：个股亏10%止损，盈利15%-20%分批止盈；买入前写好入场价/止损位/目标位",
             "done": false,
-            "doneAt": null
+            "doneAt": null,
+            "summary": ""
           },
           {
             "id": "mv6cstnhs8rbi0",
             "name": "每季度复盘一次，根据实际效果调整策略",
             "done": false,
-            "doneAt": null
+            "doneAt": null,
+            "summary": ""
           }
         ]
       }
     ],
     "createdAt": 1791875187403,
-    "updatedAt": 1791876159773
+    "updatedAt": 1791876159773,
+    "done": false,
+    "completedAt": null
   }
 ]
