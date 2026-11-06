@@ -5,7 +5,7 @@
     "archived": false,
     "done": false,
     "completedAt": null,
-    "summary": "",
+    "summary": "测试总结",
     "checkIns": [
       {
         "id": "mw4fvdr7o1hd8g",
@@ -15,6 +15,6 @@
       }
     ],
     "createdAt": 1793937165395,
-    "updatedAt": 1793937167971
+    "updatedAt": 1793937170500
   }
 ]
