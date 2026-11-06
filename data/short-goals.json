@@ -6,8 +6,15 @@
     "done": false,
     "completedAt": null,
     "summary": "",
-    "checkIns": [],
+    "checkIns": [
+      {
+        "id": "mw4g0yz54gqv2t",
+        "date": "2026-11-06",
+        "note": "测试备注",
+        "createdAt": 1793937428753
+      }
+    ],
     "createdAt": 1793937426191,
-    "updatedAt": 1793937426191
+    "updatedAt": 1793937428753
   }
 ]
