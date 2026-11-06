@@ -122,5 +122,16 @@
     "checkIns": [],
     "createdAt": 1793936005244,
     "updatedAt": 1793936005244
+  },
+  {
+    "id": "mw4qkk6p4j32dc",
+    "name": "抑制不必要食欲",
+    "archived": false,
+    "done": false,
+    "completedAt": null,
+    "summary": "",
+    "checkIns": [],
+    "createdAt": 1793955138865,
+    "updatedAt": 1793955138865
   }
 ]
