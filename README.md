@@ -6,9 +6,10 @@
 
 | 页面 | 说明 |
 | --- | --- |
-| `index.html` | 首页，四个频道入口（亲子手记频道暂不启用，已隐藏） |
+| `index.html` | 首页，频道入口（亲子手记频道暂不启用，已隐藏） |
 | `daily.html` | 生活日常记录（已完整实现） |
 | `knowledge.html` | 知识点积累（已可用） |
+| `knowledge-graph/` | 中小学及高中全学科知识图谱与自适应诊断（镜像自 `xiaoyang111222/cn-math-taxonomy`，CC BY-NC 4.0，仅限非商业使用） |
 | `parenting.html` / `reading.html` | 占位页，内容建设中 |
 | `stocks.html` | 股票监控与分析（股票监控 + 交易体系学习） |
 
@@ -98,6 +99,7 @@ python3 -m http.server 8000
 
 ```
 index.html  daily.html  parenting.html  knowledge.html  reading.html  stocks.html  stock-monitor.html
+knowledge-graph/（知识图谱独立静态站点，含原项目 LICENSE 与完整内容）
 css/style.css
 js/config.js  js/storage.js  js/common.js  js/daily.js  js/knowledge.js  js/stocks.js
 ```
