@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>目标打卡 · Stay Real and fun</title>
-  <meta name="description" content="每周工作与生活打卡，长期计划分阶段推进。">
+  <meta name="description" content="固定习惯打卡、短期目标推进、长期计划分阶段执行。">
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="css/style.css?v=20261030">
+  <link rel="stylesheet" href="css/style.css?v=20261106">
 </head>
 <body>
   <header class="site-header">
@@ -27,75 +27,65 @@
     <h1 class="page-title">目标打卡</h1>
 
     <div class="page-tabs" role="tablist" aria-label="目标打卡页签">
-      <button type="button" class="page-tab" data-tab="checkin" aria-current="true">📝 本周打卡</button>
-      <button type="button" class="page-tab" data-tab="plans">🎯 长期计划</button>
-      <button type="button" class="page-tab" data-tab="history">📋 打卡历史</button>
+      <button type="button" class="page-tab" data-tab="habits" aria-current="true">🔁 固定习惯</button>
+      <button type="button" class="page-tab" data-tab="short">🎯 短期目标</button>
+      <button type="button" class="page-tab" data-tab="plans">🏔 长期计划</button>
     </div>
 
-    <section class="tab-panel" id="panel-checkin" aria-label="本周打卡">
-
-    <section class="card form-card" aria-labelledby="today-title">
-      <div class="today-head">
-        <h2 id="today-title" class="card-title">本周打卡</h2>
-        <div class="today-date">
-          <input type="date" id="checkin-date">
-          <span class="weekday" id="checkin-weekday"></span>
-          <span class="badge-today" id="today-badge">今天</span>
-        </div>
+    <section class="tab-panel" id="panel-habits" aria-label="固定习惯">
+      <div class="section-head">
+        <h2 class="card-title history-title">固定习惯</h2>
       </div>
-
-      <fieldset class="form-field checkin-group">
-        <legend>工作事项</legend>
-        <ul id="work-tasks" class="check-list"></ul>
-        <form id="work-task-form" class="inline-add-form">
-          <input type="text" id="work-task-input" placeholder="添加本周工作事项，回车保存" maxlength="100">
-          <button type="submit" class="btn btn-small">添加</button>
-        </form>
-      </fieldset>
-
-      <fieldset class="form-field checkin-group">
-        <legend>固定目标</legend>
-        <p class="check-hint-sm">小而稳赢的战线（如减糖喝白水、早睡、清理相册），每次打卡守住就打勾～</p>
-        <ul id="habit-list" class="check-list"></ul>
-        <form id="habit-form" class="inline-add-form">
-          <input type="text" id="habit-input" placeholder="新固定目标，如：减糖喝白水" maxlength="20">
-          <button type="submit" class="btn btn-small">添加</button>
-        </form>
-        <details class="archived-box" id="archived-box" hidden>
-          <summary>已归档目标</summary>
-          <ul id="archived-list" class="check-list"></ul>
-        </details>
-      </fieldset>
-
-      <fieldset class="form-field checkin-group">
-        <legend>本周成就 · 已赢下的阵地</legend>
-        <p class="check-hint-sm">稳赢的极小行动，做成了就记一笔，复盘时回看激励自己～</p>
-        <ul id="win-list" class="check-list"></ul>
-        <form id="win-form" class="inline-add-form">
-          <input type="text" id="win-input" placeholder="成就，如：练琴重启，推进到F大调音阶" maxlength="50">
-          <button type="submit" class="btn btn-small">添加</button>
-        </form>
-      </fieldset>
-
-      <p class="today-summary" id="today-summary"></p>
+      <p class="check-hint-sm">要坚持的好习惯（早睡、减肥、少喝饮料…），做成一次就打卡一次，同一天可以多次～</p>
+      <div id="habit-cards" class="record-list"></div>
+      <p class="empty-hint" id="habit-empty" hidden>还没有固定习惯，从下面添加一个开始坚持吧～</p>
+      <form id="habit-form" class="inline-add-form add-item-form">
+        <input type="text" id="habit-input" placeholder="新固定习惯，如：早起读书" maxlength="30">
+        <button type="submit" class="btn btn-small">添加</button>
+      </form>
+      <details class="archived-box" id="habit-archived-box" hidden>
+        <summary>已归档</summary>
+        <div id="habit-archived" class="record-list"></div>
+      </details>
+      <details class="archived-box legacy-box" id="legacy-box">
+        <summary>旧版打卡记录（旧版按日期的打卡，只读）</summary>
+        <p class="check-hint-sm">2026-11 改版前的历史打卡数据</p>
+        <div id="legacy-records"></div>
+      </details>
     </section>
 
+    <section class="tab-panel" id="panel-short" aria-label="短期目标" hidden>
+      <div class="section-head">
+        <h2 class="card-title history-title">短期目标</h2>
+      </div>
+      <p class="check-hint-sm">有明确完成条件的目标（如写完一份材料、跑完一次10公里），可随时打卡推进，写下总结即可标记完成～</p>
+      <div id="short-cards" class="record-list"></div>
+      <p class="empty-hint" id="short-empty" hidden>还没有短期目标，从下面添加一个吧～</p>
+      <form id="short-form" class="inline-add-form add-item-form">
+        <input type="text" id="short-input" placeholder="新短期目标，如：完成季度复盘PPT" maxlength="30">
+        <button type="submit" class="btn btn-small">添加</button>
+      </form>
+      <details class="archived-box" id="short-archived-box" hidden>
+        <summary>已归档</summary>
+        <div id="short-archived" class="record-list"></div>
+      </details>
+      <details class="archived-box" id="short-done-box" hidden>
+        <summary>已完成目标（<span id="short-done-count">0</span>）</summary>
+        <div id="short-done" class="record-list"></div>
+      </details>
     </section>
 
     <section class="tab-panel" id="panel-plans" aria-label="长期计划" hidden>
-    <section aria-labelledby="long-title">
       <div class="section-head">
-        <h2 id="long-title" class="card-title history-title">长期计划</h2>
+        <h2 class="card-title history-title">长期计划</h2>
         <button type="button" class="btn btn-small" id="add-plan-btn">＋ 新建计划</button>
       </div>
       <div id="plan-list" class="record-list"></div>
       <p class="empty-hint" id="plan-empty" hidden>还没有长期计划，点上方「＋ 新建计划」开始吧～</p>
-    </section>
-    </section>
-
-    <section class="tab-panel" id="panel-history" aria-label="打卡历史" hidden>
-      <div id="checkin-history" class="record-list"></div>
-      <p class="empty-hint" id="checkin-history-empty" hidden>还没有打卡记录，从本周的开始吧～</p>
+      <details class="archived-box" id="plan-done-box" hidden>
+        <summary>已完成计划（<span id="plan-done-count">0</span>）</summary>
+        <div id="plan-done" class="record-list"></div>
+      </details>
     </section>
   </main>
 
@@ -103,9 +93,9 @@
     <p>© <span class="current-year">2026</span> Stay Real and fun · 用心记录每一天</p>
   </footer>
 
-  <script src="js/config.js?v=20260914"></script>
-  <script src="js/common.js?v=20260914"></script>
-  <script src="js/storage.js?v=20260914"></script>
-  <script src="js/goals.js?v=20261030"></script>
+  <script src="js/config.js?v=20261106"></script>
+  <script src="js/common.js?v=20261106"></script>
+  <script src="js/storage.js?v=20261106"></script>
+  <script src="js/goals.js?v=20261106"></script>
 </body>
 </html>
