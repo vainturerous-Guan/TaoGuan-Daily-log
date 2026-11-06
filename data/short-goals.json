@@ -3,8 +3,8 @@
     "id": "mw4fmow1eiumil",
     "name": "端到端测试目标",
     "archived": false,
-    "done": true,
-    "completedAt": 1793936770161,
+    "done": false,
+    "completedAt": null,
     "summary": "测试总结",
     "checkIns": [
       {
@@ -15,6 +15,6 @@
       }
     ],
     "createdAt": 1793936762497,
-    "updatedAt": 1793936770161
+    "updatedAt": 1793936771514
   }
 ]
