@@ -3,6 +3,17 @@
     "id": "mu3p9fdja2pqnw",
     "name": "练琴",
     "archived": false,
+    "done": false,
+    "completedAt": null,
+    "summary": "",
+    "checkIns": [
+      {
+        "id": "1a1aeeb187cmig0",
+        "date": "2026-09-16",
+        "note": "",
+        "createdAt": 1789617514408
+      }
+    ],
     "createdAt": 1789538908951,
     "updatedAt": 1789538908951
   },
@@ -10,6 +21,10 @@
     "id": "mu3p9nzpn068nh",
     "name": "开始听写英语音频",
     "archived": false,
+    "done": false,
+    "completedAt": null,
+    "summary": "",
+    "checkIns": [],
     "createdAt": 1789538920117,
     "updatedAt": 1789538920117
   },
@@ -17,6 +32,29 @@
     "id": "mu3p9vh67iz7rq",
     "name": "删10个以上照片视频（余量57534）",
     "archived": false,
+    "done": false,
+    "completedAt": null,
+    "summary": "",
+    "checkIns": [
+      {
+        "id": "1a1aeeb187cmig0",
+        "date": "2026-09-16",
+        "note": "",
+        "createdAt": 1789617514408
+      },
+      {
+        "id": "1a1aeeb187cmig1",
+        "date": "2026-10-09",
+        "note": "",
+        "createdAt": 1791595400815
+      },
+      {
+        "id": "1a1aeeb187cmig2",
+        "date": "2026-10-30",
+        "note": "",
+        "createdAt": 1793348351275
+      }
+    ],
     "createdAt": 1789538929818,
     "updatedAt": 1793348360992
   },
@@ -24,7 +62,51 @@
     "id": "mv0p6edyt3c5yu",
     "name": "看美剧学英语",
     "archived": false,
+    "done": false,
+    "completedAt": null,
+    "summary": "",
+    "checkIns": [
+      {
+        "id": "1a1aeeb187cmig0",
+        "date": "2026-10-09",
+        "note": "",
+        "createdAt": 1791595400815
+      }
+    ],
     "createdAt": 1791534151510,
     "updatedAt": 1791534151510
+  },
+  {
+    "id": "1a1aeeb187cmig早睡",
+    "name": "早睡",
+    "archived": false,
+    "done": false,
+    "completedAt": null,
+    "summary": "",
+    "checkIns": [],
+    "createdAt": 1793936005244,
+    "updatedAt": 1793936005244
+  },
+  {
+    "id": "1a1aeeb187cmig减肥",
+    "name": "减肥",
+    "archived": false,
+    "done": false,
+    "completedAt": null,
+    "summary": "",
+    "checkIns": [],
+    "createdAt": 1793936005244,
+    "updatedAt": 1793936005244
+  },
+  {
+    "id": "1a1aeeb187cmig少喝饮料",
+    "name": "少喝饮料",
+    "archived": false,
+    "done": false,
+    "completedAt": null,
+    "summary": "",
+    "checkIns": [],
+    "createdAt": 1793936005244,
+    "updatedAt": 1793936005244
   }
 ]
