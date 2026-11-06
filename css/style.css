@@ -2072,3 +2072,243 @@ main.main-wide {
   color: var(--text-soft);
   font-size: 0.8rem;
 }
+
+/* ===== 目标打卡：固定习惯 / 短期目标卡片 ===== */
+
+.goal-card.is-done {
+  opacity: 0.85;
+}
+
+.goal-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.goal-name {
+  font-weight: 700;
+}
+
+.goal-count {
+  color: var(--text-soft);
+  font-size: 0.85rem;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  border-radius: 999px;
+  padding: 0.05rem 0.6rem;
+}
+
+.goal-actions {
+  margin-left: auto;
+  display: inline-flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.goal-checkin-form {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+
+.goal-checkin-form input[type="date"] {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.goal-checkin-form input[type="text"] {
+  flex: 1;
+  min-width: 140px;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.checkin-recent,
+.checkin-all-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.checkin-item {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+  font-size: 0.92rem;
+}
+
+.checkin-mark {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.checkin-date {
+  font-weight: 600;
+}
+
+.checkin-note {
+  color: var(--text-soft);
+  overflow-wrap: anywhere;
+}
+
+.checkin-actions {
+  margin-left: auto;
+  display: inline-flex;
+  gap: 0.3rem;
+}
+
+.checkin-all {
+  margin-top: 0.5rem;
+  font-size: 0.88rem;
+  color: var(--text-soft);
+}
+
+.checkin-all summary {
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkin-all-list {
+  margin-top: 0.4rem;
+}
+
+.checkin-edit-date,
+.checkin-edit-note {
+  padding: 0.3rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.checkin-edit-note {
+  flex: 1;
+  min-width: 120px;
+}
+
+.goal-summary-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--border);
+}
+
+.goal-summary-input,
+.task-summary-input {
+  flex: 1;
+  min-width: 160px;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.88rem;
+}
+
+.add-item-form {
+  margin-top: 0.8rem;
+}
+
+.legacy-box {
+  margin-top: 1rem;
+}
+
+.plan-done-badge {
+  background: var(--accent-soft);
+  border-radius: 999px;
+  padding: 0.05rem 0.6rem;
+  font-size: 0.82rem;
+}
+
+/* ===== 生活感悟条目 ===== */
+
+.insight-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.6rem;
+}
+
+.insight-type {
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.insight-entry textarea {
+  flex: 1;
+  min-width: 180px;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.insight-entry textarea:focus,
+.insight-type:focus,
+.goal-summary-input:focus,
+.task-summary-input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+#add-insight-btn {
+  margin-top: 0.2rem;
+}
+
+col.col-insights { width: 12%; }
+
+/* ===== daily 纯感悟频道 ===== */
+
+td.col-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  align-items: stretch;
+}
+
+.view-modal-body .detail-section p {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.view-modal-body .detail-section .cell-line {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
