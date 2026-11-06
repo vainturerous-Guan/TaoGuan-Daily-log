@@ -1,33 +1,5 @@
 [
   {
-    "id": "mw4fxjhw7trogu",
-    "date": "2026-11-06",
-    "summary": "",
-    "sleep": {
-      "bedTime": "",
-      "wakeTime": ""
-    },
-    "weight": {
-      "night": null,
-      "morning": null
-    },
-    "diet": {
-      "snacks": "",
-      "meals": ""
-    },
-    "todayRecord": "",
-    "work": "",
-    "parenting": {
-      "life": "",
-      "lifeMindful": "",
-      "mindful": "",
-      "reflection": ""
-    },
-    "insights": [],
-    "createdAt": 1793937268724,
-    "updatedAt": 1793937455825
-  },
-  {
     "id": "mv7kpe616sz7r0",
     "date": "2026-10-14",
     "summary": "",
