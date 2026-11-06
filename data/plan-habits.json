@@ -24,9 +24,16 @@
     "done": false,
     "completedAt": null,
     "summary": "",
-    "checkIns": [],
+    "checkIns": [
+      {
+        "id": "mw4joq5crwxo0i",
+        "date": "2026-11-06",
+        "note": "完成第一次，听写陶陶培训班 our world A3 课文",
+        "createdAt": 1793943575904
+      }
+    ],
     "createdAt": 1789538920117,
-    "updatedAt": 1789538920117
+    "updatedAt": 1793943575904
   },
   {
     "id": "mu3p9vh67iz7rq",
