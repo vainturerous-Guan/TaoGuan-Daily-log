@@ -2,7 +2,7 @@
   {
     "id": "mw4g0wzzxcf278",
     "name": "端到端测试目标",
-    "archived": false,
+    "archived": true,
     "done": false,
     "completedAt": null,
     "summary": "测试总结",
@@ -15,6 +15,6 @@
       }
     ],
     "createdAt": 1793937426191,
-    "updatedAt": 1793937435214
+    "updatedAt": 1793937437756
   }
 ]
