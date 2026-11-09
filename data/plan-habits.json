@@ -138,9 +138,16 @@
     "done": false,
     "completedAt": null,
     "summary": "",
-    "checkIns": [],
+    "checkIns": [
+      {
+        "id": "mw96qgy636hwz2",
+        "date": "2026-11-09",
+        "note": "今日整天无糖！下午喝冰美式+零糖元气森林气泡水，这个组合口感很好，可坚持!",
+        "createdAt": 1794224153166
+      }
+    ],
     "createdAt": 1793936005244,
-    "updatedAt": 1793936005244
+    "updatedAt": 1794224153166
   },
   {
     "id": "mw4qkk6p4j32dc",
