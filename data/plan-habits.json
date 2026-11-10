@@ -12,10 +12,16 @@
         "date": "2026-09-16",
         "note": "",
         "createdAt": 1789617514408
+      },
+      {
+        "id": "mw96osgviacngf",
+        "date": "2026-11-07",
+        "note": "练到B的三只小熊啦！",
+        "createdAt": 1794224074783
       }
     ],
     "createdAt": 1789538908951,
-    "updatedAt": 1789538908951
+    "updatedAt": 1794224074783
   },
   {
     "id": "mu3p9nzpn068nh",
@@ -96,10 +102,16 @@
         "date": "2026-11-05",
         "note": "晚上12:15入睡",
         "createdAt": 1793944147790
+      },
+      {
+        "id": "mw96pcol2ubf61",
+        "date": "2026-11-08",
+        "note": "11:50进入入睡状态！第二天精神很好！",
+        "createdAt": 1794224100981
       }
     ],
     "createdAt": 1793936005244,
-    "updatedAt": 1793944147790
+    "updatedAt": 1794224100981
   },
   {
     "id": "1a1aeeb187cmig减肥",
@@ -108,9 +120,16 @@
     "done": false,
     "completedAt": null,
     "summary": "",
-    "checkIns": [],
+    "checkIns": [
+      {
+        "id": "mw96pyk26vv315",
+        "date": "2026-11-09",
+        "note": "早起体重137.6，所以整天只吃一顿正餐，极少量零食，保持！",
+        "createdAt": 1794224129330
+      }
+    ],
     "createdAt": 1793936005244,
-    "updatedAt": 1793936005244
+    "updatedAt": 1794224129330
   },
   {
     "id": "1a1aeeb187cmig少喝饮料",
@@ -119,9 +138,16 @@
     "done": false,
     "completedAt": null,
     "summary": "",
-    "checkIns": [],
+    "checkIns": [
+      {
+        "id": "mw96qgy636hwz2",
+        "date": "2026-11-09",
+        "note": "今日整天无糖！下午喝冰美式+零糖元气森林气泡水，这个组合口感很好，可坚持!",
+        "createdAt": 1794224153166
+      }
+    ],
     "createdAt": 1793936005244,
-    "updatedAt": 1793936005244
+    "updatedAt": 1794224153166
   },
   {
     "id": "mw4qkk6p4j32dc",
