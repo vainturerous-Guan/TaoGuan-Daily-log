@@ -357,6 +357,31 @@ img { max-width: 100%; height: auto; }
 }
 code { overflow-wrap: anywhere; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.home-shortcut {
+  position: fixed;
+  left: max(16px, env(safe-area-inset-left));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--bg-elev);
+  color: var(--brand);
+  box-shadow: 0 4px 18px rgba(23, 25, 31, 0.16);
+  transition: background 0.15s, color 0.15s, transform 0.15s;
+}
+.home-shortcut:hover {
+  background: var(--brand);
+  color: var(--on-brand);
+  transform: translateY(-2px);
+}
+.home-shortcut svg { width: 23px; height: 23px; }
+@media print {
+  .home-shortcut { display: none !important; }
+}
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; scroll-behavior: auto !important; }
 }
