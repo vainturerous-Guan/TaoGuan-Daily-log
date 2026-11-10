@@ -284,12 +284,13 @@ tr:hover td { background: #f8fafc; }
 
 <script>
 // ==================== 配置 ====================
+// 资金模块仍沿2026-10-27估算；11/10德赛西威卖出后的现金、总资产未获券商校准，不推算更新。
 const FUND_DATA = {
     transferTotal: 90000,
-    accountAssets: 90063.12,
-    stockValue: 67023.50,
-    availableCash: 22926.62,
-    refProfit: -4440.78,
+    accountAssets: 80865.70,
+    stockValue: 68303.90,
+    availableCash: 12561.80,
+    refProfit: -10594.40,
 };
 
 const INDEX_LIST = [
@@ -300,38 +301,49 @@ const INDEX_LIST = [
     { name: '中证1000', code: '000852', secid: '1.000852', suffix: 'SH' },
 ];
 
+// 持仓与现价快照更新至2026-11-10 11:04腾讯实时行情；德赛西威81.980×100股卖出已确认，余200股。成本按台账重建（未含费用）。
 const PORTFOLIO = [
-    { code: '002920', name: '德赛西威', qty: 300, avail: 300, costPrice: 83.420, curPrice: 83.520, marketValue: 25056.00, refProfit: 30.00, refProfitPct: 0.12, secid: '0.002920' },
-    { code: '159206', name: '卫星ETF永赢', qty: 700, avail: 700, costPrice: 2.307, curPrice: 1.344, marketValue: 940.80, refProfit: -674.10, refProfitPct: -41.66, secid: '0.159206' },
-    { code: '160225', name: '新能源汽车LOF', qty: 4500, avail: 4500, costPrice: 1.553, curPrice: 1.658, marketValue: 7461.00, refProfit: 472.50, refProfitPct: 6.76, secid: '0.160225' },
-    { code: '513500', name: '标普500ETF博时', qty: 100, avail: 100, costPrice: 2.507, curPrice: 2.676, marketValue: 267.60, refProfit: 16.90, refProfitPct: 6.74, secid: '1.513500' },
-    { code: '518880', name: '黄金ETF华安', qty: 1600, avail: 1600, costPrice: 9.249, curPrice: 9.083, marketValue: 14532.80, refProfit: -265.60, refProfitPct: -1.79, secid: '1.518880' },
-    { code: '562500', name: '机器人ETF华夏', qty: 1000, avail: 1000, costPrice: 1.318, curPrice: 0.926, marketValue: 926.00, refProfit: -392.00, refProfitPct: -29.74, secid: '1.562500' },
-    { code: '600111', name: '北方稀土', qty: 400, avail: 400, costPrice: 46.380, curPrice: 37.120, marketValue: 14848.00, refProfit: -3304.00, refProfitPct: -19.98, secid: '1.600111' },
+    { code: '002920', name: '德赛西威', qty: 200, avail: 200, costPrice: 83.420, curPrice: 81.330, marketValue: 16266.00, refProfit: -418.00, refProfitPct: -2.505, secid: '0.002920' },
+    { code: '159206', name: '卫星ETF永赢', qty: 700, avail: 700, costPrice: 2.307, curPrice: 1.230, marketValue: 861.00, refProfit: -753.90, refProfitPct: -46.684, secid: '0.159206' },
+    { code: '160225', name: '新能源汽车LOF', qty: 4500, avail: 4500, costPrice: 1.553, curPrice: 1.493, marketValue: 6718.50, refProfit: -270.00, refProfitPct: -3.863, secid: '0.160225' },
+    { code: '513500', name: '标普500ETF博时', qty: 100, avail: 100, costPrice: 2.507, curPrice: 2.649, marketValue: 264.90, refProfit: 14.20, refProfitPct: 5.664, secid: '1.513500' },
+    { code: '518880', name: '黄金ETF华安', qty: 2000, avail: 2000, costPrice: 9.0665, curPrice: 8.381, marketValue: 16762.00, refProfit: -1371.00, refProfitPct: -7.561, secid: '1.518880' },
+    { code: '562500', name: '机器人ETF华夏', qty: 1000, avail: 1000, costPrice: 1.318, curPrice: 0.893, marketValue: 893.00, refProfit: -425.00, refProfitPct: -32.246, secid: '1.562500' },
+    { code: '600111', name: '北方稀土', qty: 400, avail: 400, costPrice: 46.380, curPrice: 36.300, marketValue: 14520.00, refProfit: -4032.00, refProfitPct: -21.734, secid: '1.600111' },
+    { code: '588290', name: '科创芯片ETF华安', qty: 1600, avail: 1600, costPrice: 1.117, curPrice: 0.845, marketValue: 1352.00, refProfit: -435.20, refProfitPct: -24.351, secid: '1.588290' },
+    { code: '603993', name: '洛阳钼业', qty: 100, avail: 100, costPrice: 17.230, curPrice: 13.720, marketValue: 1372.00, refProfit: -351.00, refProfitPct: -20.371, secid: '1.603993' },
 ];
 
-// 观察池：仅包含非持仓、非已清仓的观察标的
+// 观察池：未持仓标的（含已清仓后重新跟踪的标的）
 const WATCHLIST = [
     { code: '510330', name: '沪深300ETF华夏', secid: '1.510330' },
     { code: '563800', name: '中证A50ETF', secid: '1.563800' },
-    { code: '588290', name: '科创半导体ETF华安', secid: '1.588290' },
     { code: '512660', name: '军工ETF国泰', secid: '1.512660' },
     { code: '603501', name: '豪威集团', secid: '1.603501' },
+    { code: '512760', name: '芯片ETF国泰', secid: '1.512760' },
+    { code: '588750', name: '科创芯片ETF汇添富', secid: '1.588750' },
+    { code: '562590', name: '半导体设备ETF华夏', secid: '1.562590' },
+    { code: '513180', name: '恒生科技ETF华夏', secid: '1.513180' },
+    { code: '600400', name: '红豆股份', secid: '1.600400' },
 ];
 
 // 已清仓池：曾经持仓、现已清仓的标的
 const CLOSED = [
-    { code: '603993', name: '洛阳钼业', secid: '1.603993' },
     { code: '512760', name: '芯片ETF国泰', secid: '1.512760' },
     { code: '588750', name: '科创芯片ETF汇添富', secid: '1.588750' },
     { code: '513180', name: '恒生科技ETF华夏', secid: '1.513180' },
     { code: '562590', name: '半导体设备ETF华夏', secid: '1.562590' },
     { code: '300255', name: '常山药业', secid: '0.300255' },
-    { code: '002354', name: '天娱数科', secid: '0.002354' },
-    { code: '603002', name: '宏昌电子', secid: '0.603002' },
 ];
 
 const TRADES = [
+    { date: '2026-11-10', code: '002920', name: '德赛西威', type: '卖出', price: 81.980, qty: 100, amount: 8198.00, note: '原82.080卖单撤改后成交；剩余200股，台账成本83.420；已实现毛差额-144.00元（未含费用），不追溯套用v1.1' },
+    { date: '2026-11-05', code: '600111', name: '北方稀土', type: '卖出', price: 36.600, qty: 100, amount: 3660.00, note: '对应10/9以35.050买入的100股，全部卖出完成一次低买高卖T；价差收益155元（+4.422%，未含费用）；剩余400股老仓，台账成本46.380' },
+    { date: '2026-10-27', code: '518880', name: '黄金ETF华安', type: '买入', price: 8.168, qty: 200, amount: 1633.60, note: '上午已挂条件单、下午成交；用户定性为主观低吸加仓：跌破8.2且黄金不占5万元额度；非网格自动成交' },
+    { date: '2026-10-09', code: '603993', name: '洛阳钼业', type: '买入', price: 17.230, qty: 100, amount: 1723.00, note: '用户10/27补充日期；买入逻辑与退出线待补' },
+    { date: '2026-10-09', code: '600111', name: '北方稀土', type: '买入', price: 35.050, qty: 100, amount: 3505.00, note: '用户10/27补充日期；发生于9/28旧防线触发之后' },
+    { date: '2026-09-29', code: '518880', name: '黄金ETF华安', type: '买入', price: 8.505, qty: 200, amount: 1701.00, note: '用户10/27补充日期；是否为网格成交待确认' },
+    { date: '2026-09-17', code: '588290', name: '科创芯片ETF华安', type: '买入', price: 1.117, qty: 1600, amount: 1787.20, note: '右侧确认建仓：站回MA10第2天' },
     { date: '2026-09-14', code: '603993', name: '洛阳钼业', type: '卖出', price: 17.89, qty: 100, amount: 1789.00, note: '止损：收破18.0假突破确认，实亏-107' },
     { date: '2026-09-11', code: '512760', name: '芯片ETF国泰', type: '卖出', price: 1.021, qty: 2800, amount: 2858.80, note: '止损清仓：收破1.031' },
     { date: '2026-09-11', code: '588750', name: '科创芯片ETF汇添富', type: '卖出', price: 2.180, qty: 1000, amount: 2180.00, note: '止损清仓：收破2.193' },
@@ -397,13 +409,13 @@ const TRADES = [
 const STRATEGIES = [
     {
         code: '518880', name: '黄金ETF华安',
-        type: '网格交易-到价触发型', status: '执行中(5/5对称+刹车)',
+        type: '网格交易-到价触发型', status: '暂停买入复核(10/27)',
         basePrice: 9.125,
         buyTrigger: -5.00, sellTrigger: 5.00,
         buyRef: 8.669, sellRef: 9.581,
         buyQty: 200, sellQty: 200,
-        expiry: '2026-09-24',
-        note: '机制（8/31 确认）：券商以最近成交价自动滚基准——8/31 买 9.125 成交后基准 9.125。规则①最多连买2笔后只卖不买 ②破8.22暂停买入复核',
+        expiry: '待核对',
+        note: '10/27 收盘持有2000份、收8.167，台账成本约9.0665（未含费用）。9/29买入8.505×200（是否网格成交待确认）；10/27主观加仓8.168×200，上午挂条件单下午成交，非网格自动成交。旧网格基准、刹车计数及条件单现状待核，仍处暂停买入复核。',
     },
     {
         code: '160225', name: '新能源汽车LOF',
@@ -427,69 +439,66 @@ const STRATEGIES = [
 
 const FIELDS = 'f43,f44,f45,f46,f47,f48,f57,f58,f60,f170,f171';
 
-// ==================== 作战计划预警卡（8月第1周） ====================
+// ==================== 作战计划预警卡（北方/德赛更新至11/10，其余沿10/27口径） ====================
 const PLAN_CARDS = [
     {
-        code: '600111', name: '北方稀土', plan: '【方案A 已执行】9/11 上午 T 仓 100 股 @37.00 已撤（实亏 -206）；底仓 400 股 @46.38 中长期持有',
+        code: '600111', name: '北方稀土', plan: '持有400股老仓，台账成本46.380；37.280×100股一个月卖单未收到成交反馈，维持不盘中改价',
         triggers: [
-            { kind: 'sellDown', price: 36.69, label: '【底仓最后防线】收盘破 36.69（7 月恐慌底）→ 中长期仓全撤。防线不再下移' },
-            { kind: 'info', price: null, label: '底仓逻辑：H1 净利 +120.5%，稀土价格长逻辑；2% 账户线已书面豁免（唯一例外）' },
+            { kind: 'info', price: 37.28, label: '既有卖单不随v1.1盘中自动改价；后续新卖单默认研究压力区75%位置，对照60%／90%／100%' },
+            { kind: 'info', price: 36.69, label: '历史最后防线 36.69 已于 9/28 收盘触发且未执行；不得继续把它显示为待触发。当前退出方案需重新书面确认，不能再次下移豁免' },
+            { kind: 'info', price: null, label: '当前任务：记录未执行原因与情绪；按存量仓双路径重建方案，不新增摊成本买入' },
         ],
     },
     {
-        code: '002920', name: '德赛西威', plan: '中长期区间仓：✅ 9/10 已加仓 100 股 @83.60（收盘破85条件成立，提前22分钟执行）；现 300 股混合成本 83.42，仓位约 27.8% 已接近单票上限，不再加',
+        code: '002920', name: '德赛西威', plan: '11/10以81.980卖出100股，余200股，台账成本83.420；已实现毛差额-144.00元（未含费用），不自动买回',
         triggers: [
-            { kind: 'sellUp', price: 94.50, label: '反弹至 93.5–94.5（大阴线半分位 94.07 + 前平台 93.49）→ 卖 100 股' },
-            { kind: 'sellUp', price: 101.00, label: '站稳 97.7 后 → 101–105 重压区卖 100 股' },
-            { kind: 'sellDown', price: 77.42, label: '止损（9/10 加仓后重算）：账户2%亏损线≈77.42 先于 成本线-15%(70.91) 触发 → 全撤' },
+            { kind: 'info', price: null, label: '原82.080卖单已撤改并成交；剩余200股的新压力卖单须收盘后按v1.1复核并经用户确认，当前不盘中补挂' },
+            { kind: 'sellDown', price: 77.42, label: '旧书面止损 77.42，收盘口径；触发后不重新投票、不转长期' },
         ],
     },
     {
-        code: '562500', name: '机器人ETF华夏', plan: '等回调再加仓（现持 1000 份，成本 1.318；8/3 已离开 0.92–0.95 买点区，用户确认不追，等下次回调机会）',
+        code: '562500', name: '机器人ETF华夏', plan: '10/27 截图持有 1000 份，现价 0.877；旧 0.90 逻辑复核线已破，原“回调加仓”计划作废',
         triggers: [
-            { kind: 'buyDown', price: 0.95, label: '回调至 0.95 下方或出现企稳信号 → 重新评估加仓 1000 份' },
-            { kind: 'info', price: null, label: '8/3 记录：0.977 已离开买点区，明确不追价' },
+            { kind: 'info', price: 0.90, label: '旧复核线已触发，当前不是等待加仓，而是补做持有逻辑与退出路径复核' },
+            { kind: 'info', price: null, label: '禁止因亏损扩大而摊低成本；新买入只走右侧模拟验证流程' },
         ],
     },
     {
-        code: '159206', name: '卫星ETF永赢', plan: '8/4 已执行减仓 1500 份 @1.320，8/7 再减 700 份 @1.421；余 700 份底仓火种',
+        code: '159206', name: '卫星ETF永赢', plan: '10/27 截图持有 700 份，现价 1.167；沿用台账成本 2.307，旧 1.20 防守线已破',
         triggers: [
-            { kind: 'sellUp', price: 1.550, label: '若继续反抽至 1.55 附近 → 再减 350 份' },
-            { kind: 'sellDown', price: 1.200, label: '跌破 1.20 → 底仓防守性减半' },
-            { kind: 'info', price: null, label: '底仓定位：商业航天题材保留火种，不再补仓' },
+            { kind: 'info', price: 1.20, label: '旧防守线已触发但仍在持仓，需记录未执行情况并重建存量退出方案' },
+            { kind: 'info', price: null, label: '火种仓身份不能成为无限期持有理由；不补仓、不做T解救' },
         ],
     },
     {
-        code: '512760', name: '芯片ETF国泰', plan: '❌ 已止损清仓（9/11）：收 1.022 破 1.031 结构线，卖出 2800 份 @1.021，实亏约 81 元（-2.8%）；半导体梯队全部离场',
+        code: '512760', name: '芯片ETF国泰', plan: '已清仓（9/11）。历史左侧双底止损案例保留；后续只观察，不左侧接回',
         triggers: [
-            { kind: 'info', price: null, label: '复盘：9/4 左侧建仓 @1.050，仅 5 个交易日触发止损；左侧双底策略在加速下跌段失效' },
-            { kind: 'buyDown', price: 0.99, label: '若重新关注：需等重新筑底 + 收盘站回 MA10 后再评估，不左侧接' },
+            { kind: 'info', price: null, label: '任何新买入先按《纪律与经验-261105-1》完成模拟验证' },
         ],
     },
     {
-        code: '588750', name: '科创芯片ETF汇添富', plan: '❌ 已止损清仓（9/11）：收 2.184 破 2.193 结构线，卖出 1000 份 @2.180，实亏约 65 元（-2.9%）',
+        code: '588750', name: '科创芯片ETF汇添富', plan: '已清仓（9/11）。历史左侧双底止损案例保留；后续只观察，不左侧接回',
         triggers: [
-            { kind: 'info', price: null, label: '复盘：同 512760，左侧建仓被结构破坏扫出，两笔合计实亏约 146 元' },
-            { kind: 'info', price: null, label: '20cm 弹性标的左侧风险确认；后续只做右侧' },
+            { kind: 'info', price: null, label: '任何新买入先按《纪律与经验-261105-1》完成模拟验证' },
         ],
     },
     {
-        code: '588290', name: '科创半导体ETF华安', plan: '⚠️ 结构破坏暂停（9/11）：收 1.066 跌破 1.07 前低，双底结构失效，买点作废；重新等筑底',
+        code: '588290', name: '科创芯片ETF华安', plan: '10/27 截图持有 1600 份，现价 0.858；旧止损 1.05 已破且未退出，原右侧趋势仓逻辑已失效',
         triggers: [
-            { kind: 'info', price: null, label: '半导体梯队 9/11 全部离场/破位；该板块短期只观察不动手' },
-            { kind: 'buyDown', price: 1.13, label: '重新关注条件：重新筑底 + 收盘站回 MA10（右侧确认）' },
+            { kind: 'info', price: 1.05, label: '旧止损已触发，不再显示为待触发；需记录执行偏差并重建存量退出路径' },
+            { kind: 'info', price: null, label: '不得以“已经跌很多”为理由新增买入或取消退出讨论' },
         ],
     },
     {
-        code: '603993', name: '洛阳钼业', plan: '❌ 已止损清仓（9/14）：收破 18.0 假突破确认，卖出 100 股 @17.89，实亏 -107（-5.6%）；试仓代价可控',
+        code: '603993', name: '洛阳钼业', plan: '10/27 收盘持有 100 股，收 14.060；10/9 已补录 17.230 买入 100 股，买入逻辑和退出线待补',
         triggers: [
-            { kind: 'info', price: null, label: '复盘：9/8 站稳 MA20 右侧买入逻辑成立，但 9/11 大盘急跌带破结构；铜钴逻辑不变，等重新站稳 18.9（MA20）再看' },
+            { kind: 'info', price: null, label: '先补成交与买入逻辑记录；未补齐前不沿用旧 18.9 观察条件，也不新增买入' },
         ],
     },
     {
-        code: '603501', name: '豪威集团(韦尔)', plan: '唯一保留的半导体个股观察位：车载 CIS 龙头，与德赛同产业链；一手约 8800 元，需用稀土释放资金',
+        code: '603501', name: '豪威集团(韦尔)', plan: '仅观察/模拟候选；原固定点位和资金来源描述已过时，不作为当前实盘买入计划',
         triggers: [
-            { kind: 'info', price: null, label: '其余候选个股(北方华创/海光/澜起/中芯/兆易)一手 2.3万-6.4万，超账户体量已排除' },
+            { kind: 'info', price: null, label: '新信号按低频右侧 v0.1 重新登记，未完成阶段验证不实盘' },
         ],
     },
 ];
