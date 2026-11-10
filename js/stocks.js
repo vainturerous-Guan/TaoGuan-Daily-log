@@ -32,6 +32,11 @@
     Object.keys(els.panels).forEach((key) => {
       els.panels[key].hidden = key !== name;
     });
+    // 监控页签全幅嵌入：隐藏站点页脚，让监控台贴到屏幕最下沿（与本地单页一致）
+    if (!els.footer) els.footer = $(".site-footer");
+    if (els.footer) {
+      els.footer.style.display = name === "monitor" ? "none" : "";
+    }
   }
 
   function closeDrawer() {
@@ -67,47 +72,31 @@
     activateTab("monitor");
   }
 
-  /* ===== 股票监控 iframe 高度自适应 =====
-     同源内嵌：iframe 高度跟随内容实际高度，整页由外层滚动，避免框内滚动条和底部空白 */
+  /* ===== 股票监控 iframe 视口贴合 =====
+     全幅出血嵌入：iframe 底边贴合屏幕下沿（与本地单页体验一致），内容在 iframe 内滚动；
+     高度只取决于视口与位置，不随内容变化，避免内容高度回退时底部残留空白 */
 
-  function resizeMonitorFrame() {
+  function fitMonitorFrame() {
     const frame = els.frame;
-    if (!frame) return;
-    try {
-      const doc = frame.contentDocument;
-      if (doc && doc.documentElement) {
-        const h = Math.max(
-          doc.documentElement.scrollHeight,
-          doc.body ? doc.body.scrollHeight : 0
-        );
-        if (h > 0) frame.style.height = h + "px";
-      }
-    } catch (err) {
-      /* 非同源时保持 CSS 默认高度 */
-    }
+    if (!frame || els.panels.monitor.hidden) return;
+    const top = frame.getBoundingClientRect().top + window.scrollY;
+    frame.style.height = Math.max(320, window.innerHeight - top) + "px";
   }
 
   function initMonitorFrame() {
     els.frame = $(".monitor-frame");
     if (!els.frame) return;
-    els.frame.addEventListener("load", () => {
-      resizeMonitorFrame();
-      try {
-        const ro = new ResizeObserver(resizeMonitorFrame);
-        ro.observe(els.frame.contentDocument.body);
-        ro.observe(els.frame.contentDocument.documentElement);
-      } catch (err) {
-        /* 忽略 */
-      }
-    });
-    // 切回监控页签时校准一次
+    window.addEventListener("resize", fitMonitorFrame);
+    window.addEventListener("orientationchange", fitMonitorFrame);
+    // 切回监控页签时重新贴合
     els.tabs.forEach((tab) => {
       tab.addEventListener("click", () => {
         if (tab.getAttribute("data-tab") === "monitor") {
-          setTimeout(resizeMonitorFrame, 60);
+          setTimeout(fitMonitorFrame, 60);
         }
       });
     });
+    setTimeout(fitMonitorFrame, 0);
   }
 
   /* ===== 交易体系学习 ===== */

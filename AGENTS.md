@@ -27,7 +27,7 @@
 - `knowledge-graph/`（中小学·高中知识图谱）：完整镜像 `xiaoyang111222/cn-math-taxonomy`，含全学科知识图谱、自适应诊断、题库和孩子档案，纯静态、无需构建；遵循 CC BY-NC 4.0，仅限非商业使用，保留原项目署名与 `LICENSE`。本站仅适配左下角悬浮首页图标、页脚来源说明和分享链接，原项目数据与代码更新时同步整个目录
 - `reading.html`（读书笔记）：页签结构（📝 读书笔记 / 📖 读过的书）。读书笔记页：登记书籍（登记日期+书名/文名，按登记顺序 date 升序排列，书名防重——重复时红色强提示且禁止保存）；每本书含 内容简介（大输入框、输入防抖自动保存、不限字数）、每章内容概览（多条，每条=章节名+概览，可编辑删除）、金句/关键知识点、感悟（各多条、每条≤100字，可编辑删除）；附件拖拽直存本机项目文件夹 `attachments/reading/`（File System Access API，句柄存 IndexedDB key `readingRootDir`，附件不入仓库，网页只记 name+path，删除附件不动本机文件）。读过的书页：全部已登记图书按登记日期排序，每条只显示登记日期+书名，右侧【详情】（只读弹窗预览全书内容）与【编辑】（跳回读书笔记页并打开该书的编辑表单）。数据存 `data/reading-books.json`
 - `stocks.html`：左侧抽屉页签
-  - 📊 股票监控 = iframe 内嵌 `stock-monitor.html`（独立页面，数据自给）；iframe 高度自适应内容（js/stocks.js 里 ResizeObserver 实现），整页由外层滚动，无框内滚动条；弹窗打开时外层自动对齐 iframe 顶部、关闭恢复滚动位置
+  - 📊 股票监控 = iframe 内嵌 `stock-monitor.html`（独立页面，数据自给）；全幅出血嵌入：iframe 底边贴合屏幕下沿、背景透明无边框圆角（视觉与本地单页一致），内容在 iframe 内滚动；监控页签隐藏站点页脚；弹窗打开时外层自动对齐 iframe 顶部、关闭恢复滚动位置
   - 📚 交易体系学习：数据存 `data/stock-learning.json`（结构 `{ id, date, name, point, createdAt, updatedAt }`，按日期+时间倒序）
 - `stock-monitor.html` 交易明细弹窗：按买入轮次（FIFO 先买先卖）展示，卖出份额按轮次拆分挂载，每轮右侧显示总盈亏；无法匹配的卖出归「—」组
 - `stock-monitor.html` 持仓明细：现价/市值/参考盈亏由实时行情结合数据区的成本、数量实时计算（每次「立即查询」刷新）；成本价、持仓数量等持仓数据由持仓数据同步对话维护
