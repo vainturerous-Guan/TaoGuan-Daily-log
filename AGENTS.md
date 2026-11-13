@@ -34,6 +34,7 @@
 
 ## 技术约定
 
+- 频道页口令门禁 `js/gate.js`：在除 `index.html` 外的所有页面（含 `stock-monitor.html`）`<head>` 内同步引入；未验证时隐藏正文并显示全屏口令遮罩，口令写死在脚本里（纯静态站无后端，仅防普通访客，查看源码可见）；验证通过后写 localStorage `stayreal_gate_until`（时间戳），本浏览器 7 天内全站频道免验证，跨频道共用；解锁后会重载页面内 iframe（股票监控）使之内层门禁同步解除
 - 存储双模式见 `js/storage.js`：GitHub 模式写仓库 `data/*.json`（需令牌），本地模式写 localStorage（key 按文件路径派生，如 `taoguan_records_data_stock_learning_json`）
 - 共享工具在 `js/common.js`（toast / 日期 / HTML 转义 / 本地模式提示条），各频道逻辑独立成 `js/<频道>.js`
 - CSS 全部在 `css/style.css`；站点设计令牌在 `:root`（--bg / --accent 等）；修改样式优先复用已有类（`.card` `.form-field` `.record-item` …）
